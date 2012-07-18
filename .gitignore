@@ -1,0 +1,12 @@
+.repl_history
+build
+resources/*.nib
+resources/*.momd
+resources/*.storyboardc
+
+resources/photos/[1-9]*/*
+
+vendor/Pods/Pods.xcodeproj/project.pbxproj
+vendor/Pods/build*
+
+.dat*.00*
