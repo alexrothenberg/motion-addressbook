@@ -3,7 +3,7 @@ describe AddressBook::Person do
     before do
       unique_email = "alex_#{Time.now.to_i}@example.com"
       @attributes = {:first_name=>'Alex', :last_name=>'Testy',
-                     :title => 'Developer', :department => 'Development', :organization => 'The Company',
+                     :job_title => 'Developer', :department => 'Development', :organization => 'The Company',
                      :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
                      :email => unique_email
                     }
@@ -15,46 +15,69 @@ describe AddressBook::Person do
       end
 
       it 'should not be existing' do
-        @ab_person.exists?.should == nil #falsy (should.be.false - does not work?)
+        @ab_person.should.be.new_record
       end
 
       it 'should be able to get each of the single value fields' do
-        @ab_person.get_field(KABPersonFirstNameProperty   ).should.equal @attributes[:first_name]
-        @ab_person.get_field(KABPersonLastNameProperty    ).should.equal @attributes[:last_name]
-        @ab_person.get_field(KABPersonJobTitleProperty    ).should.equal @attributes[:title]
-        @ab_person.get_field(KABPersonDepartmentProperty  ).should.equal @attributes[:department]
-        @ab_person.get_field(KABPersonOrganizationProperty).should.equal @attributes[:organization]
+        @ab_person.first_name.should.equal   @attributes[:first_name  ]
+        @ab_person.last_name.should.equal    @attributes[:last_name   ]
+        @ab_person.job_title.should.equal    @attributes[:job_title   ]
+        @ab_person.department.should.equal   @attributes[:department  ]
+        @ab_person.organization.should.equal @attributes[:organization]
+      end
+
+      describe 'setting each field' do
+        it 'should be able to set the first name' do
+          @ab_person.first_name = 'new first name'
+          @ab_person.first_name.should.equal 'new first name'
+        end
+        it 'should be able to set the last name' do
+          @ab_person.last_name = 'new last name'
+          @ab_person.last_name.should.equal 'new last name'
+        end
+        it 'should be able to set the job title' do
+          @ab_person.job_title = 'new job title'
+          @ab_person.job_title.should.equal 'new job title'
+        end
+        it 'should be able to set the department' do
+          @ab_person.department = 'new department'
+          @ab_person.department.should.equal 'new department'
+        end
+        it 'should be able to set the organization' do
+          @ab_person.organization = 'new organization'
+          @ab_person.organization.should.equal 'new organization'
+        end
       end
 
       it 'should be able to get the phone numbers' do
-        @ab_person.get_multi_field(KABPersonPhoneProperty ).should.equal [@attributes[:mobile_phone], @attributes[:office_phone] ]
+        @ab_person.phone_number_values.should.equal [@attributes[:mobile_phone], @attributes[:office_phone] ]
       end
 
       it 'should be able to get the emails' do
-        @ab_person.get_multi_field(KABPersonEmailProperty ).should.equal [@attributes[:email] ]
+        @ab_person.email_values.should.equal [@attributes[:email] ]
       end
       describe 'saving' do
         before do
           @ab_person.save
         end
         it 'after saving it should not be existing' do
-          @ab_person.exists?.should.not == nil #truthy (should.be.true - does not work?)
+          @ab_person.should.not.be.new_record
         end
       end
     end
 
-    describe 'an existing person' do
+    describe 'updating an existing person' do
       before do
         AddressBook::Person.new(@attributes).save
-        @attributes[:title       ] = 'i got promoted'
+        @attributes[:job_title   ] = 'i got promoted'
         @attributes[:office_phone] = '111 222 3333'
-        @attributes[:department  ] = nil
+        # @attributes[:department  ] = nil
         @ab_person = AddressBook::Person.new(@attributes)
       end
 
-      it 'should be an existing record' do
-        @ab_person.exists?.should.not == nil #truthy (should.be.true - does not work?)
-        # @ab_person.get_field(KABPersonDepartmentProperty).should == 'App Dev'
+      it 'should know it is not new' do
+        @ab_person.should.not.be.new_record
+        @ab_person.department.should == 'Development'
       end
 
       describe 'updating' do
@@ -63,20 +86,18 @@ describe AddressBook::Person do
           @new_ab_person = AddressBook::Person.new :first_name=>@attributes[:first_name], :email => @attributes[:email]
         end
         it 'should be able to get each of the single value fields' do
-          puts '******PENDING******  This crashes RubyMotion for some reason'
-          (2 + 2).should.equal 4
-          # @new_ab_person.get_field(KABPersonFirstNameProperty   ).should.equal @contact.first_name
-          # @new_ab_person.get_field(KABPersonLastNameProperty    ).should.equal @contact.last_name
-          # @new_ab_person.get_field(KABPersonJobTitleProperty    ).should.equal @contact.role
-          # @new_ab_person.get_field(KABPersonDepartmentProperty  ).should.equal @contact.department
-          # @new_ab_person.get_field(KABPersonOrganizationProperty).should.equal @contact.office
+          @new_ab_person.first_name.should.equal   @attributes[:first_name  ]
+          @new_ab_person.last_name.should.equal    @attributes[:last_name   ]
+          @new_ab_person.job_title.should.equal    @attributes[:job_title   ]
+          @new_ab_person.department.should.equal   @attributes[:department  ]
+          @new_ab_person.organization.should.equal @attributes[:organization]
         end
         it 'should be able to get the phone numbers (we never delete and just add - not sure if this is "right")' do
-          @new_ab_person.get_multi_field(KABPersonPhoneProperty ).should.equal [@attributes[:mobile_phone], '987 654 3210', @attributes[:office_phone]]
+          @new_ab_person.phone_number_values.should.equal [@attributes[:mobile_phone], '987 654 3210', @attributes[:office_phone]]
         end
 
         it 'should be able to get the emails' do
-          @new_ab_person.get_multi_field(KABPersonEmailProperty ).should.equal [@attributes[:email] ]
+          @new_ab_person.email_values.should.equal [@attributes[:email] ]
         end
       end
 
