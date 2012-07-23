@@ -1,4 +1,22 @@
 describe AddressBook::Person do
+  describe '.all' do
+    before do
+      @person = AddressBook::Person.create({:first_name => 'Alex', :last_name=>'Rothenberg'})
+    end
+    it 'should have the person we created' do
+      all_names = AddressBook::Person.all.map do |person|
+        [person.first_name, person.last_name]
+      end
+      all_names.should.include? ['Alex', 'Rothenberg'] 
+    end
+    
+    it 'should get bigger when we create another' do 
+      initial_people_count = AddressBook::Person.all.size
+      @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
+      AddressBook::Person.all.size.should == (initial_people_count + 1)
+    end
+  end
+
   describe 'save' do
     before do
       unique_email = "alex_#{Time.now.to_i}@example.com"

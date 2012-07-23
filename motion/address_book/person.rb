@@ -2,9 +2,22 @@ module AddressBook
   class Person
     attr_reader :attributes, :error, :ab_person
 
-    def initialize(attributes)
+    def initialize(attributes, ab_person = nil)
       @attributes = attributes
-      load_ab_person
+      load_ab_person(ab_person)
+    end
+    
+    def self.all
+      address_book = ABAddressBookCreate()
+      ABAddressBookCopyArrayOfAllPeople(address_book).map do |ab_person|
+        new({}, ab_person)
+      end
+    end
+    
+    def self.create(attributes)
+      person = new(attributes)
+      person.save
+      person
     end
 
     def save
@@ -55,8 +68,8 @@ module AddressBook
 
     # private
 
-    def load_ab_person
-      @ab_person = find_or_new
+    def load_ab_person(ab_person = nil)
+      @ab_person = ab_person || find_or_new
       set_field(KABPersonFirstNameProperty,    attributes[:first_name  ]) unless attributes[:first_name  ].nil?
       set_field(KABPersonLastNameProperty,     attributes[:last_name   ]) unless attributes[:last_name   ].nil?
       set_field(KABPersonJobTitleProperty,     attributes[:job_title   ]) unless attributes[:job_title   ].nil?
@@ -111,10 +124,14 @@ module AddressBook
     def address_book
       @address_book ||= ABAddressBookCreate()
     end
+    
+    def inspect
+      # ensure all attributes loaded
+      attribute_map.keys.each do |attribute|
+        self.send(attribute)
+      end
 
-    def alex
-      id = ABRecordGetRecordID(ab_person)
-      ABAddressBookGetPersonWithRecordID(address_book, id)
+      super
     end
 
     # def define_some_constants
