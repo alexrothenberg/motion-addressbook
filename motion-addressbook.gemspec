@@ -4,8 +4,8 @@ require File.expand_path('../lib/motion-addressbook/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Alex Rothenberg"]
   gem.email         = ["alex@alexrothenberg.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{A RubyMotion wrapper around the iOS Address Book framework}
+  gem.summary       = %q{A RubyMotion wrapper around the iOS Address Book framework}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)
