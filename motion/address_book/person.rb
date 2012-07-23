@@ -6,14 +6,14 @@ module AddressBook
       @attributes = attributes
       load_ab_person(ab_person)
     end
-    
+
     def self.all
       address_book = ABAddressBookCreate()
       ABAddressBookCopyArrayOfAllPeople(address_book).map do |ab_person|
         new({}, ab_person)
       end
     end
-    
+
     def self.create(attributes)
       person = new(attributes)
       person.save
@@ -49,6 +49,15 @@ module AddressBook
         super
       end
     end
+
+    def photo
+      ABPersonCopyImageData(ab_person)
+    end
+
+    def photo=(photo_data)
+      ABPersonSetImageData(ab_person, photo_data, error)
+    end
+
 
     def phone_numbers
       get_multi_field(KABPersonPhoneProperty)
@@ -124,7 +133,7 @@ module AddressBook
     def address_book
       @address_book ||= ABAddressBookCreate()
     end
-    
+
     def inspect
       # ensure all attributes loaded
       attribute_map.keys.each do |attribute|

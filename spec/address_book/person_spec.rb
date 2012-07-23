@@ -65,6 +65,14 @@ describe AddressBook::Person do
           @ab_person.organization = 'new organization'
           @ab_person.organization.should.equal 'new organization'
         end
+
+        it 'should be able to set the phot' do
+          image = CIImage.emptyImage
+          data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
+          @ab_person.photo = data
+          UIImagePNGRepresentation(@ab_person.photo).should.equal data
+        end
+
       end
 
       it 'should be able to get the phone numbers' do
