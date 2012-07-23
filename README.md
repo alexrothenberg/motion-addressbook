@@ -1,6 +1,8 @@
 # Addressbook for RubyMotion
 
-Classes to make it easier to interact with the iOS AddressBook from a RubyMotion app.
+A RubyMotion wrapper around the iOS Address Book framework for RubyMotion apps.
+
+Apple's [Address Book Programming Guide for iOS](http://developer.apple.com/library/ios/#DOCUMENTATION/ContactData/Conceptual/AddressBookProgrammingGuideforiPhone/Introduction.html)
 
 ## Installation
 
@@ -17,6 +19,14 @@ Or install it yourself as:
     $ gem install motion-addressbook
 
 ## Usage
+
+### List all people
+
+```ruby
+    AddressBook::Person.all
+    # => [#<AddressBook::Person:0x6d55e90 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0x6df8bf0>>,
+    #     #<AddressBook::Person:0x6d550a0 @attributes={:first_name=>"Laurent", :last_name=>"Sansonetti", :job_title=>nil, :department=>nil, :organization=>"HipByte"} @ab_person=#<__NSCFType:0x6df97d0>>]
+```
 
 
 ### Create a new Contact and save in Contacts app
