@@ -34,6 +34,7 @@ describe AddressBook::Person do
 
       it 'should not be existing' do
         @ab_person.should.be.new_record
+        @ab_person.should.not.be.exists
       end
 
       it 'should be able to get each of the single value fields' do
@@ -88,6 +89,7 @@ describe AddressBook::Person do
         end
         it 'after saving it should not be existing' do
           @ab_person.should.not.be.new_record
+          @ab_person.should.be.exists
         end
       end
     end
@@ -103,6 +105,7 @@ describe AddressBook::Person do
 
       it 'should know it is not new' do
         @ab_person.should.not.be.new_record
+        @ab_person.should.be.exists
         @ab_person.department.should == 'Development'
       end
 

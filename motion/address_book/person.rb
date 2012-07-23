@@ -122,6 +122,9 @@ module AddressBook
       end
     end
 
+    def exists?
+      !new_record?
+    end
     def new_record?
       existing_record.nil?
     end
