@@ -2,9 +2,15 @@ module AddressBook
   class Person
     attr_reader :attributes, :error, :ab_person
 
-    def initialize(attributes, ab_person = nil)
+    def initialize(attributes={}, ab_person = nil)
       @attributes = attributes
-      load_ab_person(ab_person)
+      if ab_person.nil?
+        @new_record = true
+      else
+        @ab_person = ab_person
+        load_ab_person
+        @new_record = false
+      end
     end
 
     def self.all
@@ -24,9 +30,22 @@ module AddressBook
       ABAddressBookAddRecord(address_book, ab_person, error)
       ABAddressBookSave(address_book, error )
       @address_book = nil #force refresh
+      @new_record = false
+    end
+    
+    def self.where(conditions)
+      all.select do |person|
+        person.meets? conditions
+      end
+    end
+    
+    def meets?(conditions)
+      conditions.keys.all? do |attribute|
+        send(attribute) == conditions[attribute]
+      end
     end
 
-    def attribute_map
+    def self.attribute_map
       { :first_name   => KABPersonFirstNameProperty,
         :last_name    => KABPersonLastNameProperty,
         :job_title    => KABPersonJobTitleProperty,
@@ -34,22 +53,95 @@ module AddressBook
         :organization => KABPersonOrganizationProperty
       }
     end
+    def attribute_map
+      self.class.attribute_map
+    end
 
     def method_missing(name, *args)
-      name.to_s =~ /^(\w*)(=?)$/
-      attribute_name = $1.to_sym unless $1.nil?
-      if attribute_map.include? attribute_name
-        if $2 == '='
-          set_field(attribute_map[attribute_name], args.first)
-          attributes[attribute_name] = args.first
-        else
-          attributes[attribute_name] ||= get_field(attribute_map[attribute_name])
-        end
+      if attribute_name = getter?(name)
+        get(attribute_name)
+      elsif attribute_name = setter?(name)
+        set(attribute_name, args.first)
       else
         super
       end
     end
 
+    def self.method_missing(name, *args)
+      if attribute_name = all_finder?(name)
+        find_all_by(attribute_name, args.first)
+      elsif attribute_name = first_finder?(name)
+        find_by(attribute_name, args.first)
+      elsif attribute_name = finder_or_new?(name)
+        find_or_new_by(attribute_name, args.first)
+      else
+        super
+      end
+    end    
+    def self.is_attribute?(attribute_name)
+      return false if attribute_name.nil?
+      attribute_map.include?(attribute_name.to_sym) || [:email, :phone_number].include?( attribute_name.to_sym)
+    end
+    
+    def getter?(method_name)
+      if self.class.is_attribute? method_name
+        method_name
+      else
+        nil
+      end
+    end
+    def setter?(method_name)
+      method_name.to_s =~ /^(\w*)=$/
+      if self.class.is_attribute? $1
+        $1
+      else
+        nil
+      end
+    end
+    def self.all_finder?(method_name)
+      method_name.to_s =~ /^find_all_by_(\w*)$/
+      if is_attribute? $1
+        $1
+      else
+        nil
+      end
+    end
+    def self.first_finder?(method_name)
+      method_name.to_s =~ /^find_by_(\w*)$/
+      if is_attribute? $1
+        $1
+      else
+        nil
+      end
+    end
+    def self.finder_or_new?(method_name)
+      method_name.to_s =~ /^find_or_new_by_(\w*)$/
+      if is_attribute? $1
+        $1
+      else
+        nil
+      end
+    end
+    
+    def get(attribute_name)
+      attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
+    end
+    
+    def set(attribute_name, value)
+      set_field(attribute_map[attribute_name.to_sym], value)
+      attributes[attribute_name.to_sym] = value
+    end
+    
+    def self.find_all_by(attribute_name, criteria)
+      where({attribute_name.to_sym => criteria})
+    end
+    def self.find_by(attribute_name, criteria)
+      find_all_by(attribute_name, criteria).first
+    end
+    def self.find_or_new_by(attribute_name, criteria)
+      find_by(attribute_name, criteria) || new({attribute_name.to_sym => criteria})
+    end
+      
     def photo
       ABPersonCopyImageData(ab_person)
     end
@@ -74,11 +166,18 @@ module AddressBook
     def email_values
       emails.values
     end
+    
+    # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
+    def email
+      @attributes[:email] ||= email_values.first
+    end
+    def phone_number
+      @attributes[:phone_number] ||= phone_number_values.first
+    end
 
     # private
 
-    def load_ab_person(ab_person = nil)
-      @ab_person = ab_person || find_or_new
+    def load_ab_person
       set_field(KABPersonFirstNameProperty,    attributes[:first_name  ]) unless attributes[:first_name  ].nil?
       set_field(KABPersonLastNameProperty,     attributes[:last_name   ]) unless attributes[:last_name   ].nil?
       set_field(KABPersonJobTitleProperty,     attributes[:job_title   ]) unless attributes[:job_title   ].nil?
@@ -104,14 +203,30 @@ module AddressBook
       MultiValue.new(ABRecordCopyValue(ab_person, field))
     end
 
+    def ab_person
+      if @ab_person.nil?
+        @ab_person = new_ab_person
+        load_ab_person
+      end
+      @ab_person
+    end
+
     def find_or_new
       if new_record?
-        ab_person = ABPersonCreate()
-        ABAddressBookAddRecord(address_book, ab_person, error )
-        ab_person
+        new_ab_person
       else
         existing_record
       end
+    end
+
+    def new_ab_person
+      ab_person = ABPersonCreate()
+      # ABAddressBookAddRecord(address_book, ab_person, error )
+      ab_person
+    end
+    
+    def new_record?
+      !!@new_record
     end
 
     def existing_records
@@ -125,9 +240,9 @@ module AddressBook
     def exists?
       !new_record?
     end
-    def new_record?
-      existing_record.nil?
-    end
+    # def new_record?
+    #   existing_record.nil?
+    # end
     def existing_record
       # what if there are more than one match? email should be unique but ...
       existing_records.first
