@@ -2,12 +2,12 @@ module AddressBook
   class Person
     attr_reader :attributes, :error, :ab_person
 
-    def initialize(attributes={}, ab_person = nil)
+    def initialize(attributes={}, existing_ab_person = nil)
       @attributes = attributes
-      if ab_person.nil?
+      if existing_ab_person.nil?
         @new_record = true
       else
-        @ab_person = ab_person
+        @ab_person = existing_ab_person
         load_ab_person
         @new_record = false
       end

@@ -1,49 +1,31 @@
-def unique_email
-  "alex_#{Time.now.to_i}@example.com"
-end
 describe AddressBook::Person do
-
-  describe '.all' do
-    before do
-      @person = AddressBook::Person.create({:first_name => 'Alex', :last_name=>'Rothenberg'})
-    end
-    it 'should have the person we created' do
-      all_names = AddressBook::Person.all.map do |person|
-        [person.first_name, person.last_name]
-      end
-      all_names.should.include? ['Alex', 'Rothenberg']
-    end
-
-    it 'should get bigger when we create another' do
-      initial_people_count = AddressBook::Person.all.size
-      @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
-      AddressBook::Person.all.size.should == (initial_people_count + 1)
-    end
-  end
 
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do
-        @alex = AddressBook::Person.new(:first_name => 'Alex', :last_name => 'Testy', :email => 'alex@example.com')
+        @alex = AddressBook::Person.new(:first_name => 'Alex', :last_name => 'Testy', :email => 'alex_testy@example.com')
       end
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
         @alex.first_name.should == 'Alex'
         @alex.last_name.should  == 'Testy'
-        @alex.email_values.should     == ['alex@example.com']
+        @alex.email_values.should     == ['alex_testy@example.com']
       end
     end
-
+    
     describe 'existing' do
       before do
-        AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => 'alex@example.com')
+        @email = unique_email
+        @alex = AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
       end
       describe '.find_by_all_email' do
         it 'should find matches' do
-          alexes = AddressBook::Person.find_all_by_email 'alex@example.com'
+          alexes = AddressBook::Person.find_all_by_email @email
           alexes.should.not.be.empty
           alexes.each do |alex|
-            alex.email.should == 'alex@example.com'
+            alex.email.should == @email
+            alex.first_name.should == 'Alex'
+            alex.last_name.should  == 'Testy'
           end
         end
         it 'should give empty list when nothing matches' do
@@ -53,8 +35,10 @@ describe AddressBook::Person do
       end
       describe '.find_by_email' do
         it 'should find match' do
-          alex = AddressBook::Person.find_by_email 'alex@example.com'
-          alex.email.should == 'alex@example.com'
+          alex = AddressBook::Person.find_by_email @email
+          alex.email.should == @email
+          alex.first_name.should == 'Alex'
+          alex.last_name.should  == 'Testy'
         end
         it 'should give empty list when nothing matches' do
           alexes = AddressBook::Person.find_by_email unique_email
@@ -63,10 +47,12 @@ describe AddressBook::Person do
       end
       describe '.where' do
         it 'should find matches' do
-          alexes = AddressBook::Person.where(:email => 'alex@example.com')
+          alexes = AddressBook::Person.where(:email => @email)
           alexes.should.not.be.empty
           alexes.each do |alex|
-            alex.email.should == 'alex@example.com'
+            alex.email.should == @email
+            alex.first_name.should == 'Alex'
+            alex.last_name.should  == 'Testy'
           end
         end
         it 'should give empty list when nothing matches' do
@@ -74,27 +60,43 @@ describe AddressBook::Person do
           alexes.should == []
         end
       end
+      
+      describe '.all' do
+        it 'should have the person we created' do
+          all_names = AddressBook::Person.all.map do |person|
+            [person.first_name, person.last_name]
+          end
+          all_names.should.include? [@alex.first_name, @alex.last_name]
+        end
+    
+        it 'should get bigger when we create another' do
+          initial_people_count = AddressBook::Person.all.size
+          @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
+          AddressBook::Person.all.size.should == (initial_people_count + 1)
+        end
+      end      
     end
 
-  #   describe 'new or existing' do
-  #     before do
-  #       AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => 'alex@example.com')
-  #     end
-  #     it 'should find an existing person' do
-  #       alex = AddressBook::Person.find_or_new_by_email('alex@example.com')
-  #       alex.should.not.be.new_record
-  #       alex.email.should      == 'alex@example.com'
-  #       alex.first_name.should == 'Alex'
-  #       alex.last_name.should  == 'Testy'
-  #     end
-  #     it 'should return new person when no match found' do
-  #       never_before_used_email = unique_email
-  #       alex = AddressBook::Person.find_or_new_by_email(never_before_used_email)
-  #       alex.should.be.new_record
-  #       alex.email.should == never_before_used_email
-  #       alex.first_name.should == nil
-  #     end
-  #   end
+    describe '.find_or_new_by_XXX - new or existing' do
+      before do
+        @email = unique_email
+        AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
+      end
+      it 'should find an existing person' do
+        alex = AddressBook::Person.find_or_new_by_email(@email)
+        alex.should.not.be.new_record
+        alex.email.should      == @email
+        alex.first_name.should == 'Alex'
+        alex.last_name.should  == 'Testy'
+      end
+      it 'should return new person when no match found' do
+        never_before_used_email = unique_email
+        alex = AddressBook::Person.find_or_new_by_email(never_before_used_email)
+        alex.should.be.new_record
+        alex.email.should == never_before_used_email
+        alex.first_name.should == nil
+      end
+    end
   end
 
   describe 'save' do
@@ -105,17 +107,17 @@ describe AddressBook::Person do
                      :email => unique_email
                     }
     end
-
+  
     describe 'a new person' do
       before do
         @ab_person = AddressBook::Person.new(@attributes)
       end
-
+  
       it 'should not be existing' do
         @ab_person.should.be.new_record
         @ab_person.should.not.be.exists
       end
-
+  
       it 'should be able to get each of the single value fields' do
         @ab_person.first_name.should.equal   @attributes[:first_name  ]
         @ab_person.last_name.should.equal    @attributes[:last_name   ]
@@ -123,7 +125,7 @@ describe AddressBook::Person do
         @ab_person.department.should.equal   @attributes[:department  ]
         @ab_person.organization.should.equal @attributes[:organization]
       end
-
+  
       describe 'setting each field' do
         it 'should be able to set the first name' do
           @ab_person.first_name = 'new first name'
@@ -145,7 +147,7 @@ describe AddressBook::Person do
           @ab_person.organization = 'new organization'
           @ab_person.organization.should.equal 'new organization'
         end
-
+  
         it 'should be able to set the phot' do
           image = CIImage.emptyImage
           data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
@@ -153,11 +155,11 @@ describe AddressBook::Person do
           UIImagePNGRepresentation(@ab_person.photo).should.equal data
         end
       end
-
+  
       it 'should be able to get the phone numbers' do
         @ab_person.phone_number_values.should.equal [@attributes[:mobile_phone], @attributes[:office_phone] ]
       end
-
+  
       it 'should be able to get the emails' do
         @ab_person.email_values.should.equal [@attributes[:email] ]
       end
@@ -171,7 +173,7 @@ describe AddressBook::Person do
         end
       end
     end
-
+  
     describe 'updating an existing person' do
       before do
         AddressBook::Person.new(@attributes).save
@@ -180,13 +182,14 @@ describe AddressBook::Person do
         # @attributes[:department  ] = nil
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:email])
       end
-
+  
       it 'should know it is not new' do
         @ab_person.should.not.be.new_record
         @ab_person.should.be.exists
-        @ab_person.department.should == 'Development'
+        @ab_person.first_name.should == 'Alex'
+        # @ab_person.department.should == 'Development'
       end
-
+  
       describe 'updating' do
         it 'should be able to get each of the single value fields' do
           @ab_person.save
@@ -196,11 +199,11 @@ describe AddressBook::Person do
           AddressBook::Person.find_by_email(@ab_person.email).first_name.should == 'New First Name'
         end
       end
-
+  
     end
-
+  
   end
-
+  
   describe 'method missing magic' do
     before do
       @person = AddressBook::Person.new
@@ -265,6 +268,5 @@ describe AddressBook::Person do
         AddressBook::Person.first_finder?('find_all_by_email').should.be falsey
       end
     end
-end
-
+  end
 end
