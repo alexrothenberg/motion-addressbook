@@ -175,7 +175,38 @@ module AddressBook
       @attributes[:phone_number] ||= phone_number_values.first
     end
 
-    # private
+    def ab_person
+      if @ab_person.nil?
+        @ab_person = ABPersonCreate()
+        load_ab_person
+      end
+      @ab_person
+    end
+
+    def find_or_new
+      if new_record?
+        new_ab_person
+      else
+        existing_record
+      end
+    end
+
+    def new_record?
+      !!@new_record
+    end
+    def exists?
+      !new_record?
+    end
+    def inspect
+      # ensure all attributes loaded
+      attribute_map.keys.each do |attribute|
+        self.send(attribute)
+      end
+
+      super
+    end
+
+    private
 
     def load_ab_person
       set_field(KABPersonFirstNameProperty,    attributes[:first_name  ]) unless attributes[:first_name  ].nil?
@@ -202,32 +233,6 @@ module AddressBook
       MultiValue.new({}, ABRecordCopyValue(ab_person, field))
     end
 
-    def ab_person
-      if @ab_person.nil?
-        @ab_person = new_ab_person
-        load_ab_person
-      end
-      @ab_person
-    end
-
-    def find_or_new
-      if new_record?
-        new_ab_person
-      else
-        existing_record
-      end
-    end
-
-    def new_ab_person
-      ab_person = ABPersonCreate()
-      # ABAddressBookAddRecord(address_book, ab_person, error )
-      ab_person
-    end
-    
-    def new_record?
-      !!@new_record
-    end
-
     def existing_records
       potential_matches = ABAddressBookCopyPeopleWithName(address_book, attributes[:first_name])
       potential_matches.select do |record|
@@ -236,12 +241,6 @@ module AddressBook
       end
     end
 
-    def exists?
-      !new_record?
-    end
-    # def new_record?
-    #   existing_record.nil?
-    # end
     def existing_record
       # what if there are more than one match? email should be unique but ...
       existing_records.first
@@ -251,17 +250,5 @@ module AddressBook
       @address_book ||= ABAddressBookCreate()
     end
 
-    def inspect
-      # ensure all attributes loaded
-      attribute_map.keys.each do |attribute|
-        self.send(attribute)
-      end
-
-      super
-    end
-
-    # def define_some_constants
-    #   [KABWorkLabel, KABOtherLabel, KABHomeLabel]
-    # end
   end
 end

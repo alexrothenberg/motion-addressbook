@@ -179,7 +179,7 @@ describe AddressBook::Person do
         AddressBook::Person.new(@attributes).save
         @attributes[:job_title   ] = 'i got promoted'
         @attributes[:office_phone] = '111 222 3333'
-        # @attributes[:department  ] = nil
+        @attributes[:department  ] = nil
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:email])
       end
   
@@ -187,7 +187,7 @@ describe AddressBook::Person do
         @ab_person.should.not.be.new_record
         @ab_person.should.be.exists
         @ab_person.first_name.should == 'Alex'
-        # @ab_person.department.should == 'Development'
+        @ab_person.department.should == 'Development'
       end
   
       describe 'updating' do
