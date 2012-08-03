@@ -1,7 +1,3 @@
-# see http://lists.apple.com/archives/xcode-users/2012/Apr/msg00064.html
-# AddressBook constants are not defined until we call this function
+# The value of these constants is undefined until one of the following functions has been called: ABAddressBookCreate, ABPersonCreate, ABGroupCreate.
+# see https://developer.apple.com/library/ios/#documentation/AddressBook/Reference/ABPersonRef_iPhoneOS/Reference/reference.html and search for "Discussion"
 ABAddressBookCreate()
-
-
-puts [__FILE__, __LINE__, KABPersonFirstNameProperty].inspect
-puts [__FILE__, __LINE__, KABPersonLastNameProperty].inspect

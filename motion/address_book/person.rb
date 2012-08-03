@@ -183,8 +183,8 @@ module AddressBook
       set_field(KABPersonJobTitleProperty,     attributes[:job_title   ]) unless attributes[:job_title   ].nil?
       set_field(KABPersonDepartmentProperty,   attributes[:department  ]) unless attributes[:department  ].nil?
       set_field(KABPersonOrganizationProperty, attributes[:organization]) unless attributes[:organization].nil?
-      set_multi_field(KABPersonPhoneProperty,  KABPersonPhoneMobileLabel => attributes[:mobile_phone], KABWorkLabel => attributes[:office_phone])
-      set_multi_field(KABPersonEmailProperty,  KABWorkLabel => attributes[:email])
+      set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
+      set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
     end
 
     def set_field(field, value)
@@ -195,12 +195,11 @@ module AddressBook
     end
 
     def set_multi_field(field, values)
-      multi_field = MultiValue.new(ABRecordCopyValue(ab_person, field))
-      multi_field.set_many(values)
+      multi_field = MultiValue.new(values, ABRecordCopyValue(ab_person, field))
       ABRecordSetValue(ab_person, field, multi_field.ab_multi_values, error )
     end
     def get_multi_field(field)
-      MultiValue.new(ABRecordCopyValue(ab_person, field))
+      MultiValue.new({}, ABRecordCopyValue(ab_person, field))
     end
 
     def ab_person
