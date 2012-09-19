@@ -15,9 +15,11 @@ module AddressBook
 
     def self.all
       address_book = ABAddressBookCreate()
-      ABAddressBookCopyArrayOfAllPeople(address_book).map do |ab_person|
+      people = ABAddressBookCopyArrayOfAllPeople(address_book).map do |ab_person|
         new({}, ab_person)
       end
+      people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
+      people
     end
 
     def self.create(attributes)
