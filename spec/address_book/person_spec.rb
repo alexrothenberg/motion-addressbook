@@ -1,5 +1,4 @@
 describe AddressBook::Person do
-
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do
