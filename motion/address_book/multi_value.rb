@@ -17,14 +17,14 @@ module AddressBook
     def attribute_map
       self.class.attribute_map
     end
-    
+
     def alex
       ABMultiValueGetIdentifierAtIndex @ab_multi_values, 0
     end
 
     def initialize(attributes={}, existing_ab_multi_values=nil)
       @attributes = {}
-      if existing_ab_multi_values 
+      if existing_ab_multi_values
         @ab_multi_values = ABMultiValueCreateMutableCopy(existing_ab_multi_values)
         load_attributes_from_ab
       else
@@ -49,7 +49,7 @@ module AddressBook
       return false if attribute_name.nil?
       attribute_map.include?(attribute_name.to_sym) || [:email, :phone_number].include?( attribute_name.to_sym)
     end
-    
+
     def getter?(method_name)
       if self.class.is_attribute? method_name
         method_name
@@ -69,7 +69,7 @@ module AddressBook
     def get(attribute_name)
       attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
     end
-    
+
     def set(attribute_name, value)
       set_field(attribute_map[attribute_name.to_sym], value)
       attributes[attribute_name.to_sym] = value

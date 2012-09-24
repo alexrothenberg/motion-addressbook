@@ -34,13 +34,13 @@ module AddressBook
       @address_book = nil #force refresh
       @new_record = false
     end
-    
+
     def self.where(conditions)
       all.select do |person|
         person.meets? conditions
       end
     end
-    
+
     def meets?(conditions)
       conditions.keys.all? do |attribute|
         send(attribute) == conditions[attribute]
@@ -79,12 +79,12 @@ module AddressBook
       else
         super
       end
-    end    
+    end
     def self.is_attribute?(attribute_name)
       return false if attribute_name.nil?
       attribute_map.include?(attribute_name.to_sym) || [:email, :phone_number].include?( attribute_name.to_sym)
     end
-    
+
     def getter?(method_name)
       if self.class.is_attribute? method_name
         method_name
@@ -124,16 +124,16 @@ module AddressBook
         nil
       end
     end
-    
+
     def get(attribute_name)
       attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
     end
-    
+
     def set(attribute_name, value)
       set_field(attribute_map[attribute_name.to_sym], value)
       attributes[attribute_name.to_sym] = value
     end
-    
+
     def self.find_all_by(attribute_name, criteria)
       where({attribute_name.to_sym => criteria})
     end
@@ -143,7 +143,7 @@ module AddressBook
     def self.find_or_new_by(attribute_name, criteria)
       find_by(attribute_name, criteria) || new({attribute_name.to_sym => criteria})
     end
-      
+
     def photo
       ABPersonCopyImageData(ab_person)
     end
@@ -168,7 +168,7 @@ module AddressBook
     def email_values
       emails.values
     end
-    
+
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
     def email
       @attributes[:email] ||= email_values.first

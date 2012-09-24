@@ -2,12 +2,12 @@ describe AddressBook::MultiValue do
   describe 'properties on a new multivalue' do
     describe 'initializing with values' do
       before do
-        @attributes = { :mobile   => '123-456-7890',   :iphone   => '222-333-4444',   :main  => '555-1212', 
+        @attributes = { :mobile   => '123-456-7890',   :iphone   => '222-333-4444',   :main  => '555-1212',
                         :home_fax => '1-617-555-8000', :work_fax => '1-212-555-0000', :pager => '99-9999-9999',
                         :work     => 'alex@work.com',  :home     => 'alex@home.com',  :other => 'alex@other.com'}
         @multi_value = AddressBook::MultiValue.new @attributes
       end
-    
+
       it 'should be able to get each of the single value fields' do
         @multi_value.mobile.should.equal   @attributes[:mobile  ]
         @multi_value.iphone.should.equal   @attributes[:iphone  ]
@@ -19,7 +19,7 @@ describe AddressBook::MultiValue do
         @multi_value.home.should.equal     @attributes[:home    ]
         @multi_value.other.should.equal    @attributes[:other   ]
       end
-      
+
       it 'should give all the values in a list' do
         @multi_value.values.should == ["123-456-7890", "222-333-4444", "555-1212", "1-617-555-8000", "1-212-555-0000", "99-9999-9999", "alex@work.com", "alex@home.com", "alex@other.com"]
       end
@@ -68,13 +68,13 @@ describe AddressBook::MultiValue do
       end
     end
   end
-  
+
   describe 'an existing multivalue' do
     before do
       @first_multi_value = AddressBook::MultiValue.new :mobile => '123-456-7890', :iphone => '99-8888888-7777777-66'
       @multi_value = AddressBook::MultiValue.new({:mobile => '987654321', :home_fax => '777-6666-4444'}, @first_multi_value.ab_multi_values)
     end
-    
+
     it 'should ' do
       @multi_value.mobile.should == '987654321'
       @multi_value.iphone.should == '99-8888888-7777777-66'

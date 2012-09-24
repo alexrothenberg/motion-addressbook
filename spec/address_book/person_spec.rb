@@ -12,7 +12,7 @@ describe AddressBook::Person do
         @alex.email_values.should     == ['alex_testy@example.com']
       end
     end
-    
+
     describe 'existing' do
       before do
         @email = unique_email
@@ -60,7 +60,7 @@ describe AddressBook::Person do
           alexes.should == []
         end
       end
-      
+
       describe '.all' do
         it 'should have the person we created' do
           all_names = AddressBook::Person.all.map do |person|
@@ -68,13 +68,13 @@ describe AddressBook::Person do
           end
           all_names.should.include? [@alex.first_name, @alex.last_name]
         end
-    
+
         it 'should get bigger when we create another' do
           initial_people_count = AddressBook::Person.all.size
           @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
           AddressBook::Person.all.size.should == (initial_people_count + 1)
         end
-      end      
+      end
     end
 
     describe '.find_or_new_by_XXX - new or existing' do
@@ -107,17 +107,17 @@ describe AddressBook::Person do
                      :email => unique_email
                     }
     end
-  
+
     describe 'a new person' do
       before do
         @ab_person = AddressBook::Person.new(@attributes)
       end
-  
+
       it 'should not be existing' do
         @ab_person.should.be.new_record
         @ab_person.should.not.be.exists
       end
-  
+
       it 'should be able to get each of the single value fields' do
         @ab_person.first_name.should.equal   @attributes[:first_name  ]
         @ab_person.last_name.should.equal    @attributes[:last_name   ]
@@ -125,7 +125,7 @@ describe AddressBook::Person do
         @ab_person.department.should.equal   @attributes[:department  ]
         @ab_person.organization.should.equal @attributes[:organization]
       end
-  
+
       describe 'setting each field' do
         it 'should be able to set the first name' do
           @ab_person.first_name = 'new first name'
@@ -147,7 +147,7 @@ describe AddressBook::Person do
           @ab_person.organization = 'new organization'
           @ab_person.organization.should.equal 'new organization'
         end
-  
+
         it 'should be able to set the phot' do
           image = CIImage.emptyImage
           data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
@@ -155,11 +155,11 @@ describe AddressBook::Person do
           UIImagePNGRepresentation(@ab_person.photo).should.equal data
         end
       end
-  
+
       it 'should be able to get the phone numbers' do
         @ab_person.phone_number_values.should.equal [@attributes[:mobile_phone], @attributes[:office_phone] ]
       end
-  
+
       it 'should be able to get the emails' do
         @ab_person.email_values.should.equal [@attributes[:email] ]
       end
@@ -173,7 +173,7 @@ describe AddressBook::Person do
         end
       end
     end
-  
+
     describe 'updating an existing person' do
       before do
         AddressBook::Person.new(@attributes).save
@@ -182,14 +182,14 @@ describe AddressBook::Person do
         @attributes[:department  ] = nil
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:email])
       end
-  
+
       it 'should know it is not new' do
         @ab_person.should.not.be.new_record
         @ab_person.should.be.exists
         @ab_person.first_name.should == 'Alex'
         @ab_person.department.should == 'Development'
       end
-  
+
       describe 'updating' do
         it 'should be able to get each of the single value fields' do
           @ab_person.save
@@ -199,11 +199,11 @@ describe AddressBook::Person do
           AddressBook::Person.find_by_email(@ab_person.email).first_name.should == 'New First Name'
         end
       end
-  
+
     end
-  
+
   end
-  
+
   describe 'method missing magic' do
     before do
       @person = AddressBook::Person.new
