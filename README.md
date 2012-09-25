@@ -20,6 +20,24 @@ Or install it yourself as:
 
 ## Usage
 
+### Requesting access
+
+iOS 6 requires an asynchronous call for access permission to the user, so wrap your address book
+calls in the provided `request_access` method:
+
+```ruby
+AddressBook.request_access do |granted, error|
+  if granted
+    people = AddressBook::Person.all
+    # Update your view
+  elsif !granted
+    # The user refused access
+  else
+    # Error importing contacts
+  end
+end
+```
+
 ### Instantiating a person object
 
 There are 3 ways to instantiate a person object
