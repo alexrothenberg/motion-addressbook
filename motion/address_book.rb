@@ -23,7 +23,6 @@ module AddressBook
   #
   #
   def request_access(&block)
-    $stderr.puts(block)
     if UIDevice.currentDevice.systemVersion >= '6'
       error = nil
       @address_book ||= ABAddressBookCreateWithOptions(nil, error)
@@ -70,34 +69,3 @@ module AddressBook
     ABAddressBookCreateWithOptions(nil, error) rescue false
   end
 end
-
-
-# -(void)loadContacts {
-#     ABAddressBookRef addressBook;
-#     if ([self isABAddressBookCreateWithOptionsAvailable]) {
-#         CFErrorRef error = nil;
-#         addressBook = ABAddressBookCreateWithOptions(NULL,&error);
-#         ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error) {
-#             // callback can occur in background, address book must be accessed on thread it was created on
-#             dispatch_async(dispatch_get_main_queue(), ^{
-#                 if (error) {
-#                     [self.delegate addressBookHelperError:self];
-#                 } else if (!granted) {
-#                     [self.delegate addressBookHelperDeniedAcess:self];
-#                 } else {
-#                     // access granted
-#                     AddressBookUpdated(addressBook, nil, self);
-#                 }
-#             });
-#         });
-#     } else {
-#         // iOS 4/5
-#         addressBook = ABAddressBookCreate();
-#         AddressBookUpdated(addressBook, NULL, self);
-#     }
-# }
-
-# void AddressBookUpdated(ABAddressBookRef addressBook, CFDictionaryRef info, void *context) {
-#     AddressBookHelper *helper = (AddressBookHelper *)context;
-#     ABAddressBookRevert(addressBook);
-#     CFArrayRef people = ABAddressBookCopyArrayOfAllPeople(addressBook);
