@@ -248,7 +248,7 @@ module AddressBook
     end
 
     def address_book
-      AddressBook.address_book
+      @address_book ||= AddressBook.address_book
     end
 
   end

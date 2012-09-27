@@ -2,8 +2,20 @@ module AddressBook
   module_function
 
   def address_book
+    if UIDevice.currentDevice.systemVersion >= '6'
+      ios6_create
+    else
+      ios5_create
+    end
+  end
+
+  def ios6_create
     error = nil
-    @address_book ||= ABAddressBookCreateWithOptions(nil, error)
+    ABAddressBookCreateWithOptions(nil, error)
+  end
+
+  def ios5_create
+    ABAddressBookCreate()
   end
 
 
