@@ -11,57 +11,46 @@ module AddressBook
 
   def ios6_create
     error = nil
-    ABAddressBookCreateWithOptions(nil, error)
+    address_book = ABAddressBookCreateWithOptions(nil, error)
+    request_authorization unless authorized?
+    address_book
   end
 
   def ios5_create
     ABAddressBookCreate()
   end
 
-  # Async way to request address book access
-  # Adapted from http://stackoverflow.com/a/12533918/204044
-  #
-  #
-  def request_access(&block)
-    if UIDevice.currentDevice.systemVersion >= '6'
-      error = nil
-      @address_book ||= ABAddressBookCreateWithOptions(nil, error)
-      @address_book_access_granted ||= nil
+  def request_authorization(&block)
+    synchronous = !!block
+    access_callback = lambda { |granted, error|
+      # not sure what to do with error ... so we're ignoring it
+      @address_book_access_granted = granted
+      block.call(@address_book_access_granted) unless block.nil?
+    }
 
-      access_callback = lambda { |granted, error|
-        Dispatch::Queue.main.async do
-          if (error)
-            block.call( false, true )
-          elsif(!granted)
-            @address_book_access_granted = false
-            block.call( false, false )
-          else
-            # access granted
-            @address_book_access_granted = true
-            block.call( true, false )
-          end
-        end
-      }
-
-      ABAddressBookRequestAccessWithCompletion @address_book, access_callback
-    else
-      error = nil
-      @address_book ||= ABAddressBookCreate()
-      block.call(true, false)
+    ABAddressBookRequestAccessWithCompletion address_book, access_callback
+    if synchronous
+      # Wait on the asynchronous callback before returning.
+      while @address_book_access_granted.nil? do
+        sleep 0.1
+      end
     end
+    @address_book_access_granted
   end
 
-  def address_book
-    @address_book
-  end
-
-  # TODO: what should we do when not authorized???
-  # from https://developer.apple.com/library/ios/#documentation/AddressBook/Reference/ABAddressBookRef_iPhoneOS/Reference/reference.html#//apple_ref/doc/uid/TP40007099
-  # On iOS 6.0 and later, if the caller does not have access to the Address Book database:
-  #   For apps linked against iOS 6.0 and later, this function returns NULL.
-  #   For apps linked against previous version of iOS, this function returns an empty read-only database.
   def authorized?
-    @address_book_access_granted == true
+    authorization_status == :authorized
+  end
+
+  def authorization_status
+    return :authorized unless UIDevice.currentDevice.systemVersion >= '6'
+
+    status_map = { KABAuthorizationStatusNotDetermined => :not_determined,
+                   KABAuthorizationStatusRestricted    => :restricted,
+                   KABAuthorizationStatusDenied        => :denied,
+                   KABAuthorizationStatusAuthorized    => :authorized
+                 }
+    status_map[ABAddressBookGetAuthorizationStatus()]
   end
 
   def create_with_options_available?

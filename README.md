@@ -22,20 +22,46 @@ Or install it yourself as:
 
 ### Requesting access
 
-iOS 6 requires an asynchronous call for access permission to the user, so wrap your address book
-calls in the provided `request_access` method:
+iOS 6 requires asking the user for permission before it allows an app to access the AddressBook.  There are 3 ways to interact with this
+
+1 - Let the gem take care of it for you
 
 ```ruby
-AddressBook.request_access do |granted, error|
+people = AddressBook::Person.all
+# A dialog may be presented to the user before "people" was returned
+```
+
+2 - Manually decide when to ask the user for authorization
+
+```ruby
+# asking whether we are already authorized
+if AddressBook.authorized?
+  puts "This app is authorized?"
+else
+  puts "This app is not authorized?"
+end
+
+# ask the user to authorize us
+if AddressBook.authorize
+  # do something now that the user has said "yes"
+else
+  # do something now that the user has said "no"
+end
+```
+
+3 - Manually ask the user but do it asynchronously (this is how Apple's API works)
+
+```ruby
+# ask the user to authorize us
+if AddressBook.authorize do |granted|
+  # this block is invoked sometime later
   if granted
-    people = AddressBook::Person.all
-    # Update your view
-  elsif !granted
-    # The user refused access
+    # do something now that the user has said "yes"
   else
-    # Error importing contacts
+    # do something now that the user has said "no"
   end
 end
+# do something here before the user has decided
 ```
 
 ### Instantiating a person object
