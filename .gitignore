@@ -3,8 +3,7 @@ build
 resources/*.nib
 resources/*.momd
 resources/*.storyboardc
-
-resources/photos/[1-9]*/*
+Gemfile.lock
 
 vendor/Pods/Pods.xcodeproj/project.pbxproj
 vendor/Pods/build*
