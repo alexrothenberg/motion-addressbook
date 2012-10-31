@@ -64,6 +64,18 @@ end
 # do something here before the user has decided
 ```
 
+### Showing the ABPeoplePicker
+
+```ruby
+AddressBook.pick { |person|
+  if person
+    # person is an AddressBook::Person object
+  else
+    # canceled
+  end
+}
+```
+
 ### Instantiating a person object
 
 There are 3 ways to instantiate a person object
