@@ -18,7 +18,7 @@ module AddressBook
       def hide(ab_person)
         person = ab_person ? AddressBook::Person.new({}, ab_person) : nil
 
-        UIApplication.sharedApplication.keyWindow.rootViewController.dismissViewControllerAnimated(true, completion:{
+        UIApplication.sharedApplication.keyWindow.rootViewController.dismissViewControllerAnimated(true, completion:lambda{
           @after.call(person) if @after
           @showing = nil
         })
