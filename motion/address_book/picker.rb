@@ -1,49 +1,59 @@
 module AddressBook
   class Picker
     class << self
-      def show &after
-        raise "Cannot show two Pickers" if @showing
+      attr_accessor :showing
+    end
+    def self.show(&after)
+      raise "Cannot show two Pickers" if showing?
+      @picker = Picker.new(&after)
+      @picker.show
+      @picker
+    end
 
-        @delegate ||= self.new
-        @after = after
-        @showing = true
+    def self.showing?
+      !!showing
+    end
 
-        people_picker_ctlr = ABPeoplePickerNavigationController.alloc.init
-        people_picker_ctlr.peoplePickerDelegate = @delegate
-        UIApplication.sharedApplication.keyWindow.rootViewController.presentViewController(people_picker_ctlr, animated:true, completion:nil)
+    def initialize(&after)
+      @after = after
+    end
 
-        return view_ctlr
-      end
+    def show
+      self.class.showing = true
 
-      def hide(ab_person)
-        person = ab_person ? AddressBook::Person.new({}, ab_person) : nil
+      @people_picker_ctlr = ABPeoplePickerNavigationController.alloc.init
+      @people_picker_ctlr.peoplePickerDelegate = self
+      UIApplication.sharedApplication.keyWindow.rootViewController.presentViewController(@people_picker_ctlr, animated:true, completion:nil)
+    end
 
-        UIApplication.sharedApplication.keyWindow.rootViewController.dismissViewControllerAnimated(true, completion:lambda{
-          @after.call(person) if @after
-          @showing = nil
-        })
-      end
+    def hide(ab_person=nil)
+      person = ab_person ? AddressBook::Person.new({}, ab_person) : nil
+
+      UIApplication.sharedApplication.keyWindow.rootViewController.dismissViewControllerAnimated(true, completion:lambda{
+        @after.call(person) if @after
+        self.class.showing = false
+      })
     end
 
     def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person)
-      self.class.hide(ab_person)
+      hide(ab_person)
       false
     end
 
     def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person, property:property, identifier:id)
-      self.class.hide(ab_person)
+      hide(ab_person)
       false
     end
 
     def peoplePickerNavigationControllerDidCancel(people_picker)
-      self.class.hide(nil)
+      hide
     end
   end
 end
 
 module AddressBook
   module_function
-  def pick &after
+  def pick(&after)
     AddressBook::Picker.show &after
   end
 end
