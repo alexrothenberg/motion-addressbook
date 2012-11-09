@@ -53,7 +53,7 @@ end
 
 ```ruby
 # ask the user to authorize us
-if AddressBook.authorize do |granted|
+if AddressBook.request_authorization do |granted|
   # this block is invoked sometime later
   if granted
     # do something now that the user has said "yes"
