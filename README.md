@@ -42,7 +42,7 @@ else
 end
 
 # ask the user to authorize us
-if AddressBook.authorize
+if AddressBook.request_authorization
   # do something now that the user has said "yes"
 else
   # do something now that the user has said "no"
