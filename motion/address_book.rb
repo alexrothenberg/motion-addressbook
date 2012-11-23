@@ -21,7 +21,7 @@ module AddressBook
   end
 
   def request_authorization(&block)
-    synchronous = !!block
+    synchronous = !block
     access_callback = lambda { |granted, error|
       # not sure what to do with error ... so we're ignoring it
       @address_book_access_granted = granted
