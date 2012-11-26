@@ -11,9 +11,9 @@ module AddressBook
 
   def ios6_create
     error = nil
-    address_book = ABAddressBookCreateWithOptions(nil, error)
+    @address_book = ABAddressBookCreateWithOptions(nil, error)
     request_authorization unless authorized?
-    address_book
+    @address_book
   end
 
   def ios5_create
@@ -21,14 +21,14 @@ module AddressBook
   end
 
   def request_authorization(&block)
-    synchronous = !!block
+    synchronous = !block
     access_callback = lambda { |granted, error|
       # not sure what to do with error ... so we're ignoring it
       @address_book_access_granted = granted
       block.call(@address_book_access_granted) unless block.nil?
     }
 
-    ABAddressBookRequestAccessWithCompletion address_book, access_callback
+    ABAddressBookRequestAccessWithCompletion @address_book, access_callback
     if synchronous
       # Wait on the asynchronous callback before returning.
       while @address_book_access_granted.nil? do
