@@ -14,7 +14,10 @@ module AddressBook
     end
 
     def self.all
-      people = ABAddressBookCopyArrayOfAllPeople(AddressBook.address_book).map do |ab_person|
+      ab_people = ABAddressBookCopyArrayOfAllPeople(AddressBook.address_book)
+      return [] if ab_people.nil?
+
+      people = ab_people.map do |ab_person|
         new({}, ab_person)
       end
       people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
