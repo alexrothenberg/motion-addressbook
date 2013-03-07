@@ -1,6 +1,6 @@
 module AddressBook
   class Person
-    attr_reader :attributes, :error, :ab_person
+    attr_reader :uid, :attributes, :error, :ab_person
 
     def initialize(attributes={}, existing_ab_person = nil)
       @attributes = attributes
@@ -8,6 +8,7 @@ module AddressBook
         @new_record = true
       else
         @ab_person = existing_ab_person
+        set_uid
         load_ab_person
         @new_record = false
       end
@@ -35,6 +36,7 @@ module AddressBook
       ABAddressBookSave(address_book, error )
       @address_book = nil #force refresh
       @new_record = false
+      set_uid
     end
 
     def self.where(conditions)
@@ -135,7 +137,11 @@ module AddressBook
       set_field(attribute_map[attribute_name.to_sym], value)
       attributes[attribute_name.to_sym] = value
     end
-
+    
+    def self.find_by_uid(criteria)
+      find_by :uid, criteria
+    end
+    
     def self.find_all_by(attribute_name, criteria)
       where({attribute_name.to_sym => criteria})
     end
@@ -221,7 +227,11 @@ module AddressBook
       set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
       set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
     end
-
+    
+    def set_uid
+      @uid = ABRecordGetRecordID @ab_person
+    end
+    
     def set_field(field, value)
       ABRecordSetValue(ab_person, field, value, error)
     end

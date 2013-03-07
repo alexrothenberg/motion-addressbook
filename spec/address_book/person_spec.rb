@@ -17,11 +17,22 @@ describe AddressBook::Person do
         @email = unique_email
         @alex = AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
       end
-      describe '.find_by_all_email' do
+      describe '.find_by_uid' do
+        it 'should find match' do
+          @alex.uid.should.not.be.nil
+          alex = AddressBook::Person.find_by_uid @alex.uid
+          alex.uid.should == @alex.uid
+          alex.email.should == @email
+          alex.first_name.should == 'Alex'
+          alex.last_name.should  == 'Testy'
+        end
+      end
+      describe '.find_all_by_email' do
         it 'should find matches' do
           alexes = AddressBook::Person.find_all_by_email @email
           alexes.should.not.be.empty
           alexes.each do |alex|
+            alex.uid.should != nil
             alex.email.should == @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -35,6 +46,7 @@ describe AddressBook::Person do
       describe '.find_by_email' do
         it 'should find match' do
           alex = AddressBook::Person.find_by_email @email
+          alex.uid.should.not.be.nil
           alex.email.should == @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
@@ -49,6 +61,7 @@ describe AddressBook::Person do
           alexes = AddressBook::Person.where(:email => @email)
           alexes.should.not.be.empty
           alexes.each do |alex|
+            alex.uid.should != nil
             alex.email.should == @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -84,6 +97,7 @@ describe AddressBook::Person do
       it 'should find an existing person' do
         alex = AddressBook::Person.find_or_new_by_email(@email)
         alex.should.not.be.new_record
+        alex.uid.should != nil
         alex.email.should      == @email
         alex.first_name.should == 'Alex'
         alex.last_name.should  == 'Testy'
@@ -92,6 +106,7 @@ describe AddressBook::Person do
         never_before_used_email = unique_email
         alex = AddressBook::Person.find_or_new_by_email(never_before_used_email)
         alex.should.be.new_record
+        alex.uid.should == nil
         alex.email.should == never_before_used_email
         alex.first_name.should == nil
       end
@@ -147,7 +162,7 @@ describe AddressBook::Person do
           @ab_person.organization.should.equal 'new organization'
         end
 
-        it 'should be able to set the phot' do
+        it 'should be able to set the photo' do
           image = CIImage.emptyImage
           data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
           @ab_person.photo = data
@@ -235,6 +250,9 @@ describe AddressBook::Person do
         @person.setter?('first_name'       ).should.be falsey
         @person.setter?('find_all_by_email').should.be falsey
         @person.setter?('find_by_email'    ).should.be falsey
+      end
+      it 'should not have a setter for uid' do
+        @person.setter?('uid=').should.be falsey
       end
     end
     describe 'all_finders' do
