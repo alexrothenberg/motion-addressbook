@@ -137,11 +137,11 @@ module AddressBook
       set_field(attribute_map[attribute_name.to_sym], value)
       attributes[attribute_name.to_sym] = value
     end
-    
+
     def self.find_by_uid(criteria)
       find_by :uid, criteria
     end
-    
+
     def self.find_all_by(attribute_name, criteria)
       where({attribute_name.to_sym => criteria})
     end
@@ -175,6 +175,11 @@ module AddressBook
 
     def email_values
       emails.values
+    end
+
+    def addresses
+      mv = ABRecordCopyValue(ab_person, KABPersonAddressProperty)
+      MultiValued.new(nil, mv)
     end
 
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
@@ -216,8 +221,17 @@ module AddressBook
       super
     end
 
+    def delete!
+      unless new_record?
+        ABAddressBookRemoveRecord(address_book, self, error)
+        ABAddressBookSave(address_book, error)
+        @address_book = nil #force refresh
+      end
+    end
+
     private
 
+    # loads from database into object
     def load_ab_person
       set_field(KABPersonFirstNameProperty,    attributes[:first_name  ]) unless attributes[:first_name  ].nil?
       set_field(KABPersonLastNameProperty,     attributes[:last_name   ]) unless attributes[:last_name   ].nil?
@@ -226,12 +240,13 @@ module AddressBook
       set_field(KABPersonOrganizationProperty, attributes[:organization]) unless attributes[:organization].nil?
       set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
       set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
+      set_multi_valued(KABPersonAddressProperty,  attributes[:addresses])
     end
-    
+
     def set_uid
-      @uid = ABRecordGetRecordID @ab_person
+      @uid = ABRecordGetRecordID(@ab_person)
     end
-    
+
     def set_field(field, value)
       ABRecordSetValue(ab_person, field, value, error)
     end
@@ -245,6 +260,13 @@ module AddressBook
     end
     def get_multi_field(field)
       MultiValue.new({}, ABRecordCopyValue(ab_person, field))
+    end
+
+    def set_multi_valued(field, values)
+      if values && values.any?
+        multi_field = MultiValued.new(values)
+        ABRecordSetValue(ab_person, field, multi_field.ab_multi_values, nil)
+      end
     end
 
     def existing_records
@@ -263,6 +285,5 @@ module AddressBook
     def address_book
       @address_book ||= AddressBook.address_book
     end
-
   end
 end
