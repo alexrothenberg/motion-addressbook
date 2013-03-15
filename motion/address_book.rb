@@ -1,4 +1,6 @@
 module AddressBook
+  VERSION = "1.1.0"
+
   module_function
 
   def address_book
@@ -17,7 +19,7 @@ module AddressBook
   end
 
   def ios5_create
-    ABAddressBookCreate()
+    @address_book = ABAddressBookCreate()
   end
 
   def request_authorization(&block)

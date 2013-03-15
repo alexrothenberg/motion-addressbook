@@ -2,7 +2,7 @@ module AddressBook
   class Person
     attr_reader :uid, :attributes, :error, :ab_person
 
-    def initialize(attributes={}, existing_ab_person = nil)
+    def initialize(attributes={}, existing_ab_person = nil, opts = {})
       @attributes = attributes
       if existing_ab_person.nil?
         @new_record = true
@@ -11,15 +11,17 @@ module AddressBook
         set_uid
         load_ab_person
         @new_record = false
+        @address_book = opts[:address_book]
       end
     end
 
     def self.all
-      ab_people = ABAddressBookCopyArrayOfAllPeople(AddressBook.address_book)
+      ab = AddressBook.address_book
+      ab_people = ABAddressBookCopyArrayOfAllPeople(ab)
       return [] if ab_people.nil?
 
       people = ab_people.map do |ab_person|
-        new({}, ab_person)
+        new({}, ab_person, :address_book => ab)
       end
       people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
       people
@@ -223,9 +225,12 @@ module AddressBook
 
     def delete!
       unless new_record?
-        ABAddressBookRemoveRecord(address_book, self, error)
+        # ab = @address_book || AddressBook.address_book
+        ABAddressBookRemoveRecord(address_book, ab_person, error)
         ABAddressBookSave(address_book, error)
-        @address_book = nil #force refresh
+        @address_book = nil
+        @new_record = true
+        @ab_person = nil
       end
     end
 
