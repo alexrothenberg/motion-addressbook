@@ -130,6 +130,11 @@ describe AddressBook::Person do
         :email => unique_email,
         :addresses => [
           {:label => 'home', :city => 'Dogpatch', :state => 'KY'}
+        ],
+        :urls => [
+          { :label => 'home page', :value => "http://www.mysite.com/" },
+          { :label => 'work', :value => 'http://dept.bigco.com/' },
+          { :label => 'school', :value => 'http://state.edu/college' }
         ]
       }
     end
@@ -194,8 +199,14 @@ describe AddressBook::Person do
         @ab_person.email_values.should.equal [@attributes[:email] ]
       end
 
-      it 'should be able to count the addresses' do
+      it 'should be able to count & inspect the addresses' do
         @ab_person.addresses.count.should.equal 1
+        @ab_person.addresses.attributes.should.equal @attributes[:addresses]
+      end
+
+      it 'should be able to count & inspect the URLs' do
+        @ab_person.urls.count.should.equal 3
+        @ab_person.urls.attributes.should.equal @attributes[:urls]
       end
 
       describe 'once saved' do

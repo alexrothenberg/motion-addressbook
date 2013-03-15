@@ -184,6 +184,21 @@ module AddressBook
       MultiValued.new(:ab_multi_value => mv)
     end
 
+    def urls
+      mv = ABRecordCopyValue(ab_person, KABPersonURLProperty)
+      MultiValued.new(:ab_multi_value => mv)
+    end
+
+    def social_profiles
+      mv = ABRecordCopyValue(ab_person, KABPersonSocialProfileProperty)
+      MultiValued.new(:ab_multi_value => mv)
+    end
+
+    def im_profiles
+      mv = ABRecordCopyValue(ab_person, KABPersonInstantMessageProperty)
+      MultiValued.new(:ab_multi_value => mv)
+    end
+
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
     def email
       @attributes[:email] ||= email_values.first
@@ -236,6 +251,15 @@ module AddressBook
 
     private
 
+    def property_map
+      {
+        KABPersonAddressProperty => :addresses,
+        KABPersonURLProperty => :urls,
+        KABPersonSocialProfileProperty => :social_profiles,
+        KABPersonInstantMessageProperty => :im_profiles
+      }
+    end
+
     # loads from database into object
     def load_ab_person
       set_field(KABPersonFirstNameProperty,    attributes[:first_name  ]) unless attributes[:first_name  ].nil?
@@ -245,7 +269,14 @@ module AddressBook
       set_field(KABPersonOrganizationProperty, attributes[:organization]) unless attributes[:organization].nil?
       set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
       set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
-      set_multi_valued(KABPersonAddressProperty,  attributes[:addresses])
+
+      property_map.each do |ab_property, attr_key|
+        if attributes[attr_key]
+          set_multi_valued(ab_property, attributes[attr_key])
+        end
+      end
+      # set_multi_valued(KABPersonAddressProperty,  attributes[:addresses])
+      # set_multi_valued(KABPersonURLProperty,  attributes[:urls])
     end
 
     def set_uid

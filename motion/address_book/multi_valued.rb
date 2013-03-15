@@ -12,6 +12,11 @@ module AddressBook
       end
     end
 
+    def count
+      ABMultiValueGetCount(ab_multi_value)
+    end
+    alias :size :count
+
     def attributes
       @attributes ||= convert_multi_value_into_dictionary
     end
@@ -30,13 +35,23 @@ module AddressBook
     end
 
     def convert_dictionary_into_multi_value
-      mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
-      @attributes.each do |rec|
-        ABMultiValueAddValueAndLabel(mv, hash_to_ab_record(rec), rec[:label], nil)
+      if @attributes.find {|rec| rec[:value]}
+        mv = ABMultiValueCreateMutable(KABMultiStringPropertyType)
+        @attributes.each do |rec|
+          ABMultiValueAddValueAndLabel(mv, rec[:value], rec[:label], nil)
+        end
+        mv
+      else
+        mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
+        @attributes.each do |rec|
+          ABMultiValueAddValueAndLabel(mv, hash_to_ab_record(rec), rec[:label], nil)
+        end
+        mv
       end
-      mv
     end
 
+    # these are for mapping fields in a kABMultiDictionaryPropertyType record
+    # to keys in a standard hash (NSDictionary)
     @@attribute_map = {
       KABPersonAddressStreetKey => :street,
       KABPersonAddressCityKey => :city,
@@ -46,7 +61,10 @@ module AddressBook
 
       KABPersonSocialProfileURLKey => :url,
       KABPersonSocialProfileServiceKey => :service,
-      KABPersonSocialProfileUsernameKey => :username
+      KABPersonSocialProfileUsernameKey => :username,
+
+      KABPersonInstantMessageServiceKey => :service,
+      KABPersonInstantMessageUsernameKey => :username
     }
 
     def hash_to_ab_record(h)
@@ -56,13 +74,14 @@ module AddressBook
     end
 
     def ab_record_to_hash(ab_record)
-      @@attribute_map.each_with_object({}) do |(ab_key, attr_key), hash|
-        hash[attr_key] = ab_record[ab_key] if ab_record[ab_key]
+      case ab_record
+      when String
+        {:value => ab_record}
+      else
+        @@attribute_map.each_with_object({}) do |(ab_key, attr_key), hash|
+          hash[attr_key] = ab_record[ab_key] if ab_record[ab_key]
+        end
       end
-    end
-
-    def count
-      ABMultiValueGetCount(ab_multi_value)
     end
   end
 end
