@@ -193,12 +193,10 @@ module AddressBook
     end
 
     def emails
-      # get_multi_field(KABPersonEmailProperty )
       get_multi_valued(KABPersonEmailProperty)
     end
 
     def email_values
-      # emails.values
       emails.attributes.map {|r| r[:value]}
     end
 
@@ -208,23 +206,25 @@ module AddressBook
 
     def addresses
       get_multi_valued(KABPersonAddressProperty)
-      # mv = ABRecordCopyValue(ab_person, KABPersonAddressProperty)
-      # MultiValued.new(:ab_multi_value => mv)
     end
 
     def urls
-      mv = ABRecordCopyValue(ab_person, KABPersonURLProperty)
-      MultiValued.new(:ab_multi_value => mv)
+      get_multi_valued(KABPersonURLProperty)
+
+      # mv = ABRecordCopyValue(ab_person, KABPersonURLProperty)
+      # MultiValued.new(:ab_multi_value => mv)
     end
 
     def social_profiles
-      mv = ABRecordCopyValue(ab_person, KABPersonSocialProfileProperty)
-      MultiValued.new(:ab_multi_value => mv)
+      get_multi_valued(KABPersonSocialProfileProperty)
+      # mv = ABRecordCopyValue(ab_person, KABPersonSocialProfileProperty)
+      # MultiValued.new(:ab_multi_value => mv)
     end
 
     def im_profiles
-      mv = ABRecordCopyValue(ab_person, KABPersonInstantMessageProperty)
-      MultiValued.new(:ab_multi_value => mv)
+      get_multi_valued(KABPersonInstantMessageProperty)
+      # mv = ABRecordCopyValue(ab_person, KABPersonInstantMessageProperty)
+      # MultiValued.new(:ab_multi_value => mv)
     end
 
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
