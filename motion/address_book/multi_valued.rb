@@ -20,7 +20,7 @@ module AddressBook
       count.times.map do |i|
         label = ABMultiValueCopyLabelAtIndex(@ab_multi_value, i)
         label_val = ABAddressBookCopyLocalizedLabel(label)
-        data = from_address(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
+        data = ab_record_to_hash(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
         data.merge(:label => label_val)
       end
     end
@@ -32,31 +32,33 @@ module AddressBook
     def convert_dictionary_into_multi_value
       mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
       @attributes.each do |rec|
-        ABMultiValueAddValueAndLabel(mv, rec_to_ab_address(rec), rec[:label], nil)
+        ABMultiValueAddValueAndLabel(mv, hash_to_ab_record(rec), rec[:label], nil)
       end
       mv
     end
 
-    # must filter out any nil values
-    # runtime will crash if it attempts to store nils to the database
-    def rec_to_ab_address(h)
-      {
-        KABPersonAddressStreetKey => h[:street],
-        KABPersonAddressCityKey => h[:city],
-        KABPersonAddressStateKey => h[:state],
-        KABPersonAddressZIPKey => h[:postalcode],
-        KABPersonAddressCountryKey => h[:country]
-      }.reject {|k,v| v.nil?}
+    @@attribute_map = {
+      KABPersonAddressStreetKey => :street,
+      KABPersonAddressCityKey => :city,
+      KABPersonAddressStateKey => :state,
+      KABPersonAddressZIPKey => :postalcode,
+      KABPersonAddressCountryKey => :country,
+
+      KABPersonSocialProfileURLKey => :url,
+      KABPersonSocialProfileServiceKey => :service,
+      KABPersonSocialProfileUsernameKey => :username
+    }
+
+    def hash_to_ab_record(h)
+      @@attribute_map.each_with_object({}) do |(ab_key, attr_key), ab_record|
+        ab_record[ab_key] = h[attr_key] if h[attr_key]
+      end
     end
 
-    def from_address(h)
-      {
-        :street => h[KABPersonAddressStreetKey],
-        :city => h[KABPersonAddressCityKey],
-        :state => h[KABPersonAddressStateKey],
-        :postalcode => h[KABPersonAddressZIPKey],
-        :country => h[KABPersonAddressCountryKey]
-      }.reject {|k,v| v.nil?}
+    def ab_record_to_hash(ab_record)
+      @@attribute_map.each_with_object({}) do |(ab_key, attr_key), hash|
+        hash[attr_key] = ab_record[ab_key] if ab_record[ab_key]
+      end
     end
 
     def count
