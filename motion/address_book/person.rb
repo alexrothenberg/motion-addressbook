@@ -49,7 +49,12 @@ module AddressBook
 
     def meets?(conditions)
       conditions.keys.all? do |attribute|
-        send(attribute) == conditions[attribute]
+        case attribute
+        when :email
+          emails.attributes.map {|rec| rec[:value]}.any? {|v| v == conditions[attribute]}
+        else
+          send(attribute) == conditions[attribute]
+        end
       end
     end
 
@@ -150,8 +155,16 @@ module AddressBook
     def self.find_by(attribute_name, criteria)
       find_all_by(attribute_name, criteria).first
     end
+    def self.new_by(attribute_name, criteria)
+      case attr_sym = attribute_name.to_sym
+      when :email
+        new({:emails => [{:value => criteria}]})
+      else
+        new({attr_sym => criteria})
+      end
+    end
     def self.find_or_new_by(attribute_name, criteria)
-      find_by(attribute_name, criteria) || new({attribute_name.to_sym => criteria})
+      find_by(attribute_name, criteria) || new_by(attribute_name, criteria)
     end
 
     def photo
