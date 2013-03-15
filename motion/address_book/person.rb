@@ -171,17 +171,32 @@ module AddressBook
       phone_numbers.values
     end
 
+    def phones
+      get_multi_valued(KABPersonPhoneProperty)
+    end
+
+    def phones_values
+      phones.attributes.map {|r| r[:value]}
+    end
+
     def emails
-      get_multi_field(KABPersonEmailProperty )
+      # get_multi_field(KABPersonEmailProperty )
+      get_multi_valued(KABPersonEmailProperty)
     end
 
     def email_values
-      emails.values
+      # emails.values
+      emails.attributes.map {|r| r[:value]}
+    end
+
+    def get_multi_valued(field)
+      MultiValued.new(:ab_multi_value => ABRecordCopyValue(ab_person, field))
     end
 
     def addresses
-      mv = ABRecordCopyValue(ab_person, KABPersonAddressProperty)
-      MultiValued.new(:ab_multi_value => mv)
+      get_multi_valued(KABPersonAddressProperty)
+      # mv = ABRecordCopyValue(ab_person, KABPersonAddressProperty)
+      # MultiValued.new(:ab_multi_value => mv)
     end
 
     def urls
@@ -253,6 +268,8 @@ module AddressBook
 
     def property_map
       {
+        KABPersonPhoneProperty => :phones,
+        KABPersonEmailProperty => :emails,
         KABPersonAddressProperty => :addresses,
         KABPersonURLProperty => :urls,
         KABPersonSocialProfileProperty => :social_profiles,
@@ -267,8 +284,8 @@ module AddressBook
       set_field(KABPersonJobTitleProperty,     attributes[:job_title   ]) unless attributes[:job_title   ].nil?
       set_field(KABPersonDepartmentProperty,   attributes[:department  ]) unless attributes[:department  ].nil?
       set_field(KABPersonOrganizationProperty, attributes[:organization]) unless attributes[:organization].nil?
-      set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
-      set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
+      # set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
+      # set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
 
       property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
