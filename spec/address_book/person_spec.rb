@@ -211,13 +211,17 @@ describe AddressBook::Person do
           @ab_person.should.be.exists
         end
 
-        it 'should be able to get the emails' do
+        it 'should be able to count the emails' do
           @ab_person.emails.size.should.equal 1
         end
 
         it 'should be able to count the addresses' do
-          @ab_person.addresses.count.should.equal 1 #[@attributes[:addresses]]
+          @ab_person.addresses.count.should.equal 1
           # @ab_person.addresses.should.equal [@attributes[:addresses]]
+        end
+
+        it 'should be able to retrieve the addresses' do
+          @ab_person.addresses.attributes.should.equal @attributes[:addresses]
         end
       end
 
@@ -233,13 +237,10 @@ describe AddressBook::Person do
       end
     end
 
-    describe 'updating an existing person' do
+    describe 'an existing person' do
       before do
         @orig_ab_person = AddressBook::Person.new(@attributes)
         @orig_ab_person.save
-        @attributes[:job_title   ] = 'i got promoted'
-        @attributes[:office_phone] = '111 222 3333'
-        @attributes[:department  ] = nil
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:email])
       end
       after do
@@ -257,19 +258,19 @@ describe AddressBook::Person do
         @ab_person.uid.should.equal @orig_ab_person.uid
       end
 
-      describe 'updating' do
-        it 'should be able to get each of the single value fields' do
+      describe 'when updated' do
+        before do
+          @ab_person.first_name = 'New First Name'
           @ab_person.save
-          @new_ab_person = AddressBook::Person.find_by_email @ab_person.email
-          @new_ab_person.first_name = 'New First Name'
-          @new_ab_person.save
-          AddressBook::Person.find_by_email(@ab_person.email).first_name.should == 'New First Name'
-          @new_ab_person.uid.should.equal @ab_person.uid
+        end
+
+        it 'should be able to get each of the single value fields' do
+          @match = AddressBook::Person.find_by_email(@ab_person.email)
+          @match.first_name.should == 'New First Name'
+          @match.uid.should.equal @ab_person.uid
         end
       end
-
     end
-
   end
 
   describe 'method missing magic' do
