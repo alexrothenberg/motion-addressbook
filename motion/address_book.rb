@@ -1,6 +1,4 @@
 module AddressBook
-  VERSION = "1.1.0"
-
   module_function
 
   def address_book

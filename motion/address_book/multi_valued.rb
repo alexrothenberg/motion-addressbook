@@ -1,18 +1,35 @@
 module AddressBook
   class MultiValued
-    attr_reader :attributes, :ab_multi_values
+    def initialize(opts)
+      unless opts.one?
+        raise ArgumentError, "MultiValued requires attributes *or* ab_multi_value: #{opts}"
+      end
 
-    def initialize(inbound=nil, existing_ab_multi_values=nil)
-      if existing_ab_multi_values
-        @ab_multi_values = ABMultiValueCreateMutableCopy(existing_ab_multi_values)
-        convert_multivalue
+      if opts[:ab_multi_value]
+        @ab_multi_value = ABMultiValueCreateMutableCopy(opts[:ab_multi_value])
       else
-        @attributes = inbound
-        @ab_multi_values = import_into_multi_value
+        @attributes = opts[:attributes]
       end
     end
 
-    def import_into_multi_value
+    def attributes
+      @attributes ||= convert_multi_value_into_dictionary
+    end
+
+    def convert_multi_value_into_dictionary
+      count.times.map do |i|
+        label = ABMultiValueCopyLabelAtIndex(@ab_multi_value, i)
+        label_val = ABAddressBookCopyLocalizedLabel(label)
+        data = from_address(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
+        data.merge(:label => label_val)
+      end
+    end
+
+    def ab_multi_value
+      @ab_multi_value ||= convert_dictionary_into_multi_value
+    end
+
+    def convert_dictionary_into_multi_value
       mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
       @attributes.each do |rec|
         ABMultiValueAddValueAndLabel(mv, rec_to_ab_address(rec), rec[:label], nil)
@@ -42,27 +59,8 @@ module AddressBook
       }.reject {|k,v| v.nil?}
     end
 
-    def method_missing(name, *args)
-      if attribute_name = getter?(name)
-        get(attribute_name)
-      elsif attribute_name = setter?(name)
-        set(attribute_name, args.first)
-      else
-        super
-      end
-    end
-
     def count
-      ABMultiValueGetCount(ab_multi_values)
-    end
-
-    def convert_multivalue
-      @attributes = count.times.map do |i|
-        label = ABMultiValueCopyLabelAtIndex(ab_multi_values, i)
-        label_val = ABAddressBookCopyLocalizedLabel(label)
-        data = from_address(ABMultiValueCopyValueAtIndex(ab_multi_values, i))
-        data.merge(:label => label_val)
-      end
+      ABMultiValueGetCount(ab_multi_value)
     end
   end
 end

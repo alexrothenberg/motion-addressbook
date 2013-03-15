@@ -15,7 +15,7 @@ describe AddressBook::MultiValued do
             :state => "NV"
           }
         ]
-        @mv = AddressBook::MultiValued.new @attributes
+        @mv = AddressBook::MultiValued.new(:attributes => @attributes)
       end
 
       it 'should count the records' do
@@ -24,6 +24,15 @@ describe AddressBook::MultiValued do
 
       it 'should store the initial data correctly' do
         @mv.attributes.should.equal @attributes
+      end
+
+      it 'should have correct internal representation' do
+        internal = @mv.ab_multi_value
+        ABMultiValueGetCount(internal).should.equal 2
+        ABMultiValueCopyLabelAtIndex(internal, 0).should.equal "home"
+        ABMultiValueCopyLabelAtIndex(internal, 1).should.equal "work"
+        ABMultiValueCopyValueAtIndex(internal, 0).keys.count.should.equal 3
+        ABMultiValueCopyValueAtIndex(internal, 1).keys.count.should.equal 3
       end
     end
   end

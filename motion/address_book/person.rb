@@ -181,7 +181,7 @@ module AddressBook
 
     def addresses
       mv = ABRecordCopyValue(ab_person, KABPersonAddressProperty)
-      MultiValued.new(nil, mv)
+      MultiValued.new(:ab_multi_value => mv)
     end
 
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
@@ -269,8 +269,8 @@ module AddressBook
 
     def set_multi_valued(field, values)
       if values && values.any?
-        multi_field = MultiValued.new(values)
-        ABRecordSetValue(ab_person, field, multi_field.ab_multi_values, nil)
+        multi_field = MultiValued.new(:attributes => values)
+        ABRecordSetValue(ab_person, field, multi_field.ab_multi_value, nil)
       end
     end
 
