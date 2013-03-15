@@ -228,12 +228,12 @@ module AddressBook
     end
 
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
-    def email
-      @attributes[:email] ||= email_values.first
-    end
-    def phone_number
-      @attributes[:phone_number] ||= phone_number_values.first
-    end
+    # def email
+    #   @attributes[:email] ||= email_values.first
+    # end
+    # def phone_number
+    #   @attributes[:phone_number] ||= phone_number_values.first
+    # end
 
     def ab_person
       if @ab_person.nil?

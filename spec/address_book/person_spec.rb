@@ -28,7 +28,8 @@ describe AddressBook::Person do
           @alex.uid.should.not.be.nil
           alex = AddressBook::Person.find_by_uid @alex.uid
           alex.uid.should == @alex.uid
-          alex.email.should == @email
+          # alex.email.should == @email
+          alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
         end
@@ -39,7 +40,8 @@ describe AddressBook::Person do
           alexes.should.not.be.empty
           alexes.each do |alex|
             alex.uid.should != nil
-            alex.email.should == @email
+            # alex.email.should == @email
+            alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
           end
@@ -53,7 +55,8 @@ describe AddressBook::Person do
         it 'should find match' do
           alex = AddressBook::Person.find_by_email @email
           alex.uid.should.not.be.nil
-          alex.email.should == @email
+          # alex.email.should == @email
+          alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
         end
@@ -68,7 +71,8 @@ describe AddressBook::Person do
           alexes.should.not.be.empty
           alexes.each do |alex|
             alex.uid.should != nil
-            alex.email.should == @email
+            # alex.email.should == @email
+            alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
           end
@@ -283,7 +287,7 @@ describe AddressBook::Person do
         end
 
         it 'should be able to get each of the single value fields' do
-          @match = AddressBook::Person.find_by_email(@ab_person.email)
+          @match = AddressBook::Person.find_by_email(@ab_person.email_values.first)
           @match.first_name.should == 'New First Name'
           @match.uid.should.equal @ab_person.uid
         end
