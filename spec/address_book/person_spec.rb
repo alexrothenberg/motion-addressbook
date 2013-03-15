@@ -17,6 +17,9 @@ describe AddressBook::Person do
         @email = unique_email
         @alex = AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
       end
+      after do
+        @alex.delete!
+      end
       describe '.find_by_uid' do
         it 'should find match' do
           @alex.uid.should.not.be.nil
@@ -85,6 +88,7 @@ describe AddressBook::Person do
           initial_people_count = AddressBook::Person.all.size
           @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
           AddressBook::Person.all.size.should == (initial_people_count + 1)
+          @person.delete!
         end
       end
     end
@@ -92,8 +96,12 @@ describe AddressBook::Person do
     describe '.find_or_new_by_XXX - new or existing' do
       before do
         @email = unique_email
-        AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
+        @alex = AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
       end
+      after do
+        @alex.delete!
+      end
+
       it 'should find an existing person' do
         alex = AddressBook::Person.find_or_new_by_email(@email)
         alex.should.not.be.new_record
@@ -115,11 +123,15 @@ describe AddressBook::Person do
 
   describe 'save' do
     before do
-      @attributes = {:first_name=>'Alex', :last_name=>'Testy',
-                     :job_title => 'Developer', :department => 'Development', :organization => 'The Company',
-                     :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
-                     :email => unique_email
-                    }
+      @attributes = {
+        :first_name=>'Alex', :last_name=>'Testy',
+        :job_title => 'Developer', :department => 'Development', :organization => 'The Company',
+        :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
+        :email => unique_email,
+        :addresses => [
+          {:label => 'home', :city => 'Dogpatch', :state => 'KY'}
+        ]
+      }
     end
 
     describe 'a new person' do
@@ -174,27 +186,65 @@ describe AddressBook::Person do
         @ab_person.phone_number_values.should.equal [@attributes[:mobile_phone], @attributes[:office_phone] ]
       end
 
+      it 'should be able to count the emails' do
+        @ab_person.emails.size.should.equal 1
+      end
+
       it 'should be able to get the emails' do
         @ab_person.email_values.should.equal [@attributes[:email] ]
       end
-      describe 'saving' do
+
+      it 'should be able to count the addresses' do
+        @ab_person.addresses.count.should.equal 1
+      end
+
+      describe 'once saved' do
         before do
           @ab_person.save
         end
-        it 'after saving it should not be existing' do
+        after do
+          @ab_person.delete!
+        end
+
+        it 'should no longer be new' do
           @ab_person.should.not.be.new_record
           @ab_person.should.be.exists
+        end
+
+        it 'should be able to count the emails' do
+          @ab_person.emails.size.should.equal 1
+        end
+
+        it 'should be able to count the addresses' do
+          @ab_person.addresses.count.should.equal 1
+          # @ab_person.addresses.should.equal [@attributes[:addresses]]
+        end
+
+        it 'should be able to retrieve the addresses' do
+          @ab_person.addresses.attributes.should.equal @attributes[:addresses]
+        end
+      end
+
+      describe 'can be deleted' do
+        before do
+          @ab_person.save
+          @ab_person.delete!
+        end
+        it 'after deletion it should no longer exist' do
+          @ab_person.should.not.be.exists
+          @ab_person.should.be.new_record
         end
       end
     end
 
-    describe 'updating an existing person' do
+    describe 'an existing person' do
       before do
-        AddressBook::Person.new(@attributes).save
-        @attributes[:job_title   ] = 'i got promoted'
-        @attributes[:office_phone] = '111 222 3333'
-        @attributes[:department  ] = nil
+        @orig_ab_person = AddressBook::Person.new(@attributes)
+        @orig_ab_person.save
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:email])
+      end
+      after do
+        @ab_person.delete!
       end
 
       it 'should know it is not new' do
@@ -204,18 +254,23 @@ describe AddressBook::Person do
         @ab_person.department.should == 'Development'
       end
 
-      describe 'updating' do
-        it 'should be able to get each of the single value fields' do
-          @ab_person.save
-          @new_ab_person = AddressBook::Person.find_by_email @ab_person.email
-          @new_ab_person.first_name = 'New First Name'
-          @new_ab_person.save
-          AddressBook::Person.find_by_email(@ab_person.email).first_name.should == 'New First Name'
-        end
+      it 'should not change ID' do
+        @ab_person.uid.should.equal @orig_ab_person.uid
       end
 
-    end
+      describe 'when updated' do
+        before do
+          @ab_person.first_name = 'New First Name'
+          @ab_person.save
+        end
 
+        it 'should be able to get each of the single value fields' do
+          @match = AddressBook::Person.find_by_email(@ab_person.email)
+          @match.first_name.should == 'New First Name'
+          @match.uid.should.equal @ab_person.uid
+        end
+      end
+    end
   end
 
   describe 'method missing magic' do

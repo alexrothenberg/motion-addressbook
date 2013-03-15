@@ -17,7 +17,7 @@ module AddressBook
   end
 
   def ios5_create
-    ABAddressBookCreate()
+    @address_book = ABAddressBookCreate()
   end
 
   def request_authorization(&block)
