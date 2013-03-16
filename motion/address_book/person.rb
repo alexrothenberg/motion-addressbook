@@ -59,7 +59,8 @@ module AddressBook
     end
 
     def self.attribute_map
-      { :first_name   => KABPersonFirstNameProperty,
+      {
+        :first_name   => KABPersonFirstNameProperty,
         :last_name    => KABPersonLastNameProperty,
         :job_title    => KABPersonJobTitleProperty,
         :department   => KABPersonDepartmentProperty,
@@ -292,21 +293,23 @@ module AddressBook
 
     # loads from database into object
     def load_ab_person
-      set_field(KABPersonFirstNameProperty,    attributes[:first_name  ]) unless attributes[:first_name  ].nil?
-      set_field(KABPersonLastNameProperty,     attributes[:last_name   ]) unless attributes[:last_name   ].nil?
-      set_field(KABPersonJobTitleProperty,     attributes[:job_title   ]) unless attributes[:job_title   ].nil?
-      set_field(KABPersonDepartmentProperty,   attributes[:department  ]) unless attributes[:department  ].nil?
-      set_field(KABPersonOrganizationProperty, attributes[:organization]) unless attributes[:organization].nil?
-      # set_multi_field(KABPersonPhoneProperty,  :mobile => attributes[:mobile_phone], :work => attributes[:office_phone])
-      # set_multi_field(KABPersonEmailProperty,  :work => attributes[:email])
+      set_field(KABPersonFirstNameProperty,    attributes[:first_name  ])
+      set_field(KABPersonLastNameProperty,     attributes[:last_name   ])
+      set_field(KABPersonJobTitleProperty,     attributes[:job_title   ])
+      set_field(KABPersonDepartmentProperty,   attributes[:department  ])
+      set_field(KABPersonOrganizationProperty, attributes[:organization])
+
+      if attributes[:is_org]
+        set_field(KABPersonKindProperty, KABPersonKindOrganization)
+      else
+        set_field(KABPersonKindProperty, KABPersonKindPerson)
+      end
 
       property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
         end
       end
-      # set_multi_valued(KABPersonAddressProperty,  attributes[:addresses])
-      # set_multi_valued(KABPersonURLProperty,  attributes[:urls])
     end
 
     def set_uid
@@ -314,7 +317,9 @@ module AddressBook
     end
 
     def set_field(field, value)
-      ABRecordSetValue(ab_person, field, value, error)
+      if value
+        ABRecordSetValue(ab_person, field, value, error)
+      end
     end
     def get_field(field)
       ABRecordCopyValue(ab_person, field)
@@ -333,6 +338,13 @@ module AddressBook
         multi_field = MultiValued.new(:attributes => values)
         ABRecordSetValue(ab_person, field, multi_field.ab_multi_value, nil)
       end
+    end
+
+    def person?
+      get_field(KABPersonKindProperty) == KABPersonKindPerson
+    end
+    def org?
+      get_field(KABPersonKindProperty) == KABPersonKindOrganization
     end
 
     def existing_records
