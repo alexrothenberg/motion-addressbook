@@ -61,10 +61,15 @@ module AddressBook
     def self.attribute_map
       {
         :first_name   => KABPersonFirstNameProperty,
+        :middle_name   => KABPersonMiddleNameProperty,
         :last_name    => KABPersonLastNameProperty,
+        :suffix    => KABPersonSuffixProperty,
+        :nickname    => KABPersonNicknameProperty,
         :job_title    => KABPersonJobTitleProperty,
         :department   => KABPersonDepartmentProperty,
-        :organization => KABPersonOrganizationProperty
+        :organization => KABPersonOrganizationProperty,
+        :dob    => KABPersonBirthdayProperty,
+        :notes    => KABPersonNoteProperty
       }
     end
     def attribute_map
@@ -280,7 +285,22 @@ module AddressBook
 
     private
 
-    def property_map
+    def single_value_property_map
+      {
+        KABPersonFirstNameProperty => :first_name,
+        KABPersonLastNameProperty => :last_name,
+        KABPersonMiddleNameProperty => :middle_name,
+        KABPersonSuffixProperty => :suffix,
+        KABPersonNicknameProperty => :nickname,
+        KABPersonJobTitleProperty => :job_title,
+        KABPersonDepartmentProperty => :department,
+        KABPersonOrganizationProperty => :organization,
+        KABPersonBirthdayProperty => :dob,
+        KABPersonNoteProperty => :note
+      }
+    end
+
+    def multi_value_property_map
       {
         KABPersonPhoneProperty => :phones,
         KABPersonEmailProperty => :emails,
@@ -293,11 +313,16 @@ module AddressBook
 
     # loads from database into object
     def load_ab_person
-      set_field(KABPersonFirstNameProperty,    attributes[:first_name  ])
-      set_field(KABPersonLastNameProperty,     attributes[:last_name   ])
-      set_field(KABPersonJobTitleProperty,     attributes[:job_title   ])
-      set_field(KABPersonDepartmentProperty,   attributes[:department  ])
-      set_field(KABPersonOrganizationProperty, attributes[:organization])
+      single_value_property_map.each do |ab_property, attr_key|
+        if attributes[attr_key]
+          set_field(ab_property, attributes[attr_key])
+        end
+      end
+      # set_field(KABPersonFirstNameProperty,    attributes[:first_name  ])
+      # set_field(KABPersonLastNameProperty,     attributes[:last_name   ])
+      # set_field(KABPersonJobTitleProperty,     attributes[:job_title   ])
+      # set_field(KABPersonDepartmentProperty,   attributes[:department  ])
+      # set_field(KABPersonOrganizationProperty, attributes[:organization])
 
       if attributes[:is_org]
         set_field(KABPersonKindProperty, KABPersonKindOrganization)
@@ -305,7 +330,7 @@ module AddressBook
         set_field(KABPersonKindProperty, KABPersonKindPerson)
       end
 
-      property_map.each do |ab_property, attr_key|
+      multi_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
         end

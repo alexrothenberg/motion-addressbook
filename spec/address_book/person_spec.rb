@@ -131,8 +131,15 @@ describe AddressBook::Person do
   describe 'save' do
     before do
       @attributes = {
-        :first_name=>'Alex', :last_name=>'Testy',
-        :job_title => 'Developer', :department => 'Development', :organization => 'The Company',
+        :first_name=>'Alex',
+        :middle_name=>'Q.',
+        :last_name=>'Testy',
+        :suffix => 'III',
+        :nickname => 'Geekster',
+        :job_title => 'Developer',
+        :department => 'Development',
+        :organization => 'The Company',
+        :note => 'big important guy',
         # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
         :phones => [
           {:label => 'mobile', :value => '123 456 7899'},
@@ -166,9 +173,14 @@ describe AddressBook::Person do
       it 'should be able to get each of the single value fields' do
         @ab_person.first_name.should.equal   @attributes[:first_name  ]
         @ab_person.last_name.should.equal    @attributes[:last_name   ]
+        @ab_person.middle_name.should.equal    @attributes[:middle_name   ]
+        @ab_person.suffix.should.equal    @attributes[:suffix   ]
+        @ab_person.nickname.should.equal    @attributes[:nickname   ]
+        @ab_person.middle_name.should.equal    @attributes[:last_name   ]
         @ab_person.job_title.should.equal    @attributes[:job_title   ]
         @ab_person.department.should.equal   @attributes[:department  ]
         @ab_person.organization.should.equal @attributes[:organization]
+        @ab_person.note.should.equal @attributes[:note]
       end
 
       describe 'setting each field' do
@@ -234,6 +246,10 @@ describe AddressBook::Person do
           @ab_person.should.be.exists
         end
 
+        it 'should have key properties' do
+          @ab_person.attributes[:note].should.equal @attributes[:note]
+        end
+
         it 'should be able to count the emails' do
           @ab_person.emails.size.should.equal 1
         end
@@ -292,6 +308,22 @@ describe AddressBook::Person do
           @match.uid.should.equal @ab_person.uid
         end
       end
+    end
+  end
+
+  describe "organization record" do
+    before do
+      @person = AddressBook::Person.new(
+        :first_name => 'John',
+        :last_name => 'Whorfin',
+        :organization => 'Acme Inc.',
+        :is_org => true,
+        :note => 'big important company'
+      )
+    end
+
+    it "should know that it is an organization" do
+      @person.should.be.org?
     end
   end
 
