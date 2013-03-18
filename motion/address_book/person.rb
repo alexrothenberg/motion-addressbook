@@ -181,13 +181,8 @@ module AddressBook
       ABPersonSetImageData(ab_person, photo_data, error)
     end
 
-
-    def phone_numbers
-      get_multi_field(KABPersonPhoneProperty)
-    end
-
-    def phone_number_values
-      phone_numbers.values
+    def get_multi_valued(field)
+      MultiValued.new(:ab_multi_value => ABRecordCopyValue(ab_person, field))
     end
 
     def phones
@@ -206,31 +201,20 @@ module AddressBook
       emails.attributes.map {|r| r[:value]}
     end
 
-    def get_multi_valued(field)
-      MultiValued.new(:ab_multi_value => ABRecordCopyValue(ab_person, field))
-    end
-
     def addresses
       get_multi_valued(KABPersonAddressProperty)
     end
 
     def urls
       get_multi_valued(KABPersonURLProperty)
-
-      # mv = ABRecordCopyValue(ab_person, KABPersonURLProperty)
-      # MultiValued.new(:ab_multi_value => mv)
     end
 
     def social_profiles
       get_multi_valued(KABPersonSocialProfileProperty)
-      # mv = ABRecordCopyValue(ab_person, KABPersonSocialProfileProperty)
-      # MultiValued.new(:ab_multi_value => mv)
     end
 
     def im_profiles
       get_multi_valued(KABPersonInstantMessageProperty)
-      # mv = ABRecordCopyValue(ab_person, KABPersonInstantMessageProperty)
-      # MultiValued.new(:ab_multi_value => mv)
     end
 
     # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
@@ -274,7 +258,6 @@ module AddressBook
 
     def delete!
       unless new_record?
-        # ab = @address_book || AddressBook.address_book
         ABAddressBookRemoveRecord(address_book, ab_person, error)
         ABAddressBookSave(address_book, error)
         @address_book = nil
@@ -318,11 +301,6 @@ module AddressBook
           set_field(ab_property, attributes[attr_key])
         end
       end
-      # set_field(KABPersonFirstNameProperty,    attributes[:first_name  ])
-      # set_field(KABPersonLastNameProperty,     attributes[:last_name   ])
-      # set_field(KABPersonJobTitleProperty,     attributes[:job_title   ])
-      # set_field(KABPersonDepartmentProperty,   attributes[:department  ])
-      # set_field(KABPersonOrganizationProperty, attributes[:organization])
 
       if attributes[:is_org]
         set_field(KABPersonKindProperty, KABPersonKindOrganization)
@@ -350,14 +328,6 @@ module AddressBook
       ABRecordCopyValue(ab_person, field)
     end
 
-    def set_multi_field(field, values)
-      multi_field = MultiValue.new(values, ABRecordCopyValue(ab_person, field))
-      ABRecordSetValue(ab_person, field, multi_field.ab_multi_values, error )
-    end
-    def get_multi_field(field)
-      MultiValue.new({}, ABRecordCopyValue(ab_person, field))
-    end
-
     def set_multi_valued(field, values)
       if values && values.any?
         multi_field = MultiValued.new(:attributes => values)
@@ -368,7 +338,7 @@ module AddressBook
     def person?
       get_field(KABPersonKindProperty) == KABPersonKindPerson
     end
-    def org?
+    def organization?
       get_field(KABPersonKindProperty) == KABPersonKindOrganization
     end
 

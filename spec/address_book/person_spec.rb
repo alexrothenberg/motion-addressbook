@@ -180,6 +180,7 @@ describe AddressBook::Person do
         @ab_person.department.should.equal   @attributes[:department  ]
         @ab_person.organization.should.equal @attributes[:organization]
         @ab_person.note.should.equal @attributes[:note]
+        @ab_person.should.be.person?
       end
 
       describe 'setting each field' do
@@ -322,7 +323,7 @@ describe AddressBook::Person do
     end
 
     it "should know that it is an organization" do
-      @person.should.be.org?
+      @person.should.be.organization?
     end
   end
 
