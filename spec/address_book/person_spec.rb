@@ -232,6 +232,7 @@ describe AddressBook::Person do
 
       describe 'once saved' do
         before do
+          @before_count = AddressBook.count
           @ab_person.save
         end
         after do
@@ -241,6 +242,10 @@ describe AddressBook::Person do
         it 'should no longer be new' do
           @ab_person.should.not.be.new_record
           @ab_person.should.be.exists
+        end
+
+        it "should increment the count" do
+          AddressBook.count.should.equal @before_count+1
         end
 
         it 'should have scalar properties' do
