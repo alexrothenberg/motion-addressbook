@@ -28,7 +28,6 @@ describe AddressBook::Person do
           @alex.uid.should.not.be.nil
           alex = AddressBook::Person.find_by_uid @alex.uid
           alex.uid.should == @alex.uid
-          # alex.email.should == @email
           alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
@@ -40,7 +39,6 @@ describe AddressBook::Person do
           alexes.should.not.be.empty
           alexes.each do |alex|
             alex.uid.should != nil
-            # alex.email.should == @email
             alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -55,7 +53,6 @@ describe AddressBook::Person do
         it 'should find match' do
           alex = AddressBook::Person.find_by_email @email
           alex.uid.should.not.be.nil
-          # alex.email.should == @email
           alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
@@ -71,7 +68,6 @@ describe AddressBook::Person do
           alexes.should.not.be.empty
           alexes.each do |alex|
             alex.uid.should != nil
-            # alex.email.should == @email
             alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -139,7 +135,7 @@ describe AddressBook::Person do
         :job_title => 'Developer',
         :department => 'Development',
         :organization => 'The Company',
-        :note => 'big important guy',
+        :note => 'some important guy',
         # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
         :phones => [
           {:label => 'mobile', :value => '123 456 7899'},
@@ -246,8 +242,10 @@ describe AddressBook::Person do
           @ab_person.should.be.exists
         end
 
-        it 'should have key properties' do
-          @ab_person.attributes[:note].should.equal @attributes[:note]
+        it 'should have scalar properties' do
+          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
+            @ab_person.attributes[attr].should.equal @attributes[attr]
+          end
         end
 
         it 'should be able to count the emails' do
@@ -307,6 +305,37 @@ describe AddressBook::Person do
           @match.first_name.should == 'New First Name'
           @match.uid.should.equal @ab_person.uid
         end
+      end
+    end
+
+    describe "input with bad attributes" do
+      before do
+        @attributes[:junk] = 'this should be ignored'
+        @attributes[:last_name] = nil
+        @attributes[:urls] = [
+          { :value => "http://www.mysite.com/" },
+          { :label => 'work' },
+          { :label => 'work', :url => 'http://state.edu/college' }
+        ]
+        @ab_person = AddressBook::Person.create(@attributes)
+      end
+      after do
+        @ab_person.delete!
+      end
+
+      # entries with missing label should be OK
+      # entries with missing value should be ignored
+      # entries with illegal fields should raise an exception
+      it "should save without errors" do
+        @ab_person.should.be.exists
+      end
+
+      it "should have the expected values" do
+        @ab_person.urls.count.should.equal 1
+        urldata = [{:value => "http://www.mysite.com/", :label => ""}]
+        @ab_person.urls.attributes.should.equal urldata
+        @ab_person.attributes.keys.should.not.include?(:junk)
+        @ab_person.last_name.should.equal nil
       end
     end
   end

@@ -3,15 +3,15 @@ module AddressBook
     attr_reader :uid, :attributes, :error, :ab_person
 
     def initialize(attributes={}, existing_ab_person = nil, opts = {})
-      @attributes = attributes
+      @address_book = opts[:address_book]
       if existing_ab_person.nil?
+        @ab_person = nil
+        @attributes = attributes
         @new_record = true
       else
         @ab_person = existing_ab_person
-        set_uid
-        load_ab_person
+        import_ab_person
         @new_record = false
-        @address_book = opts[:address_book]
       end
     end
 
@@ -37,8 +37,8 @@ module AddressBook
       ABAddressBookAddRecord(address_book, ab_person, error)
       ABAddressBookSave(address_book, error )
       @address_book = nil #force refresh
+      import_ab_person
       @new_record = false
-      set_uid
     end
 
     def self.where(conditions)
@@ -247,14 +247,14 @@ module AddressBook
     def exists?
       !new_record?
     end
-    def inspect
-      # ensure all attributes loaded
-      attribute_map.keys.each do |attribute|
-        self.send(attribute)
-      end
+    # def inspect
+    #   # ensure all attributes loaded
+    #   attribute_map.keys.each do |attribute|
+    #     self.send(attribute)
+    #   end
 
-      super
-    end
+    #   super
+    # end
 
     def delete!
       unless new_record?
@@ -294,7 +294,7 @@ module AddressBook
       }
     end
 
-    # loads from database into object
+    # instantiates ABPerson record from attributes
     def load_ab_person
       single_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
@@ -312,6 +312,24 @@ module AddressBook
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
         end
+      end
+    end
+
+    def import_ab_person
+      set_uid
+      @attributes = {}
+      single_value_property_map.each do |ab_property, attr_key|
+        if value = get_field(ab_property)
+          @attributes[attr_key] = value
+        end
+      end
+
+      if organization?
+        @attributes[:is_org] = true
+      end
+
+      multi_value_property_map.each do |ab_property, attr_key|
+        @attributes[attr_key] = get_multi_valued(ab_property)
       end
     end
 
