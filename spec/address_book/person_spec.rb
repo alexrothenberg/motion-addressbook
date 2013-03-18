@@ -7,6 +7,7 @@ describe AddressBook::Person do
       end
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
+        @alex.uid.should.be.nil
       end
       it 'should have initial values' do
         @alex.first_name.should == 'Alex'

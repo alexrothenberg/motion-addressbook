@@ -1,6 +1,6 @@
 module AddressBook
   class Person
-    attr_reader :uid, :attributes, :error, :ab_person
+    attr_reader :error, :ab_person
 
     def initialize(attributes={}, existing_ab_person = nil, opts = {})
       @address_book = opts[:address_book]
@@ -10,7 +10,8 @@ module AddressBook
         @new_record = true
       else
         @ab_person = existing_ab_person
-        import_ab_person
+        @attributes = nil
+        # import_ab_person
         @new_record = false
       end
     end
@@ -35,10 +36,27 @@ module AddressBook
 
     def save
       ABAddressBookAddRecord(address_book, ab_person, error)
-      ABAddressBookSave(address_book, error )
-      @address_book = nil #force refresh
-      import_ab_person
+      ABAddressBookSave(address_book, error)
+      # @address_book = nil #force refresh
+      @attributes = nil # force refresh
       @new_record = false
+      uid
+    end
+
+    def attributes
+      @attributes || import_ab_person
+    end
+
+    def ab_person
+      if @ab_person.nil?
+        @ab_person = ABPersonCreate()
+        load_ab_person
+      end
+      @ab_person
+    end
+
+    def uid
+      @uid ||= (@ab_person && ABRecordGetRecordID(@ab_person))
     end
 
     def self.where(conditions)
@@ -217,22 +235,6 @@ module AddressBook
       get_multi_valued(KABPersonInstantMessageProperty)
     end
 
-    # UGH - kinda arbitrary way to deal with multiple values.  DO SOMETHING BETTER.
-    # def email
-    #   @attributes[:email] ||= email_values.first
-    # end
-    # def phone_number
-    #   @attributes[:phone_number] ||= phone_number_values.first
-    # end
-
-    def ab_person
-      if @ab_person.nil?
-        @ab_person = ABPersonCreate()
-        load_ab_person
-      end
-      @ab_person
-    end
-
     def find_or_new
       if new_record?
         new_ab_person
@@ -247,14 +249,6 @@ module AddressBook
     def exists?
       !new_record?
     end
-    # def inspect
-    #   # ensure all attributes loaded
-    #   attribute_map.keys.each do |attribute|
-    #     self.send(attribute)
-    #   end
-
-    #   super
-    # end
 
     def delete!
       unless new_record?
@@ -265,6 +259,7 @@ module AddressBook
         @ab_person = nil
       end
     end
+
 
     private
 
@@ -316,7 +311,6 @@ module AddressBook
     end
 
     def import_ab_person
-      set_uid
       @attributes = {}
       single_value_property_map.each do |ab_property, attr_key|
         if value = get_field(ab_property)
@@ -331,10 +325,8 @@ module AddressBook
       multi_value_property_map.each do |ab_property, attr_key|
         @attributes[attr_key] = get_multi_valued(ab_property)
       end
-    end
 
-    def set_uid
-      @uid = ABRecordGetRecordID(@ab_person)
+      @attributes
     end
 
     def set_field(field, value)
