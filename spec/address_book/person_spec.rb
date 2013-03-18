@@ -176,7 +176,6 @@ describe AddressBook::Person do
         @ab_person.middle_name.should.equal    @attributes[:middle_name   ]
         @ab_person.suffix.should.equal    @attributes[:suffix   ]
         @ab_person.nickname.should.equal    @attributes[:nickname   ]
-        @ab_person.middle_name.should.equal    @attributes[:last_name   ]
         @ab_person.job_title.should.equal    @attributes[:job_title   ]
         @ab_person.department.should.equal   @attributes[:department  ]
         @ab_person.organization.should.equal @attributes[:organization]

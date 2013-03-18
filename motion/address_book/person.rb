@@ -69,7 +69,7 @@ module AddressBook
         :department   => KABPersonDepartmentProperty,
         :organization => KABPersonOrganizationProperty,
         :dob    => KABPersonBirthdayProperty,
-        :notes    => KABPersonNoteProperty
+        :note    => KABPersonNoteProperty
       }
     end
     def attribute_map
