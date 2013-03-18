@@ -260,6 +260,9 @@ module AddressBook
       end
     end
 
+    def composite_name
+      ABRecordCopyCompositeName(ab_person)
+    end
 
     private
 

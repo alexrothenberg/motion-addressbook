@@ -14,6 +14,9 @@ describe AddressBook::Person do
         @alex.last_name.should  == 'Testy'
         @alex.email_values.should == [@data[:emails][0][:value]]
       end
+      it 'should have a composite name' do
+        @alex.composite_name.should == 'Alex Testy'
+      end
     end
 
     describe 'existing' do
@@ -252,6 +255,10 @@ describe AddressBook::Person do
           [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
             @ab_person.attributes[attr].should.equal @attributes[attr]
           end
+        end
+
+        it 'should have a composite name' do
+          @ab_person.composite_name.should == 'Alex Q. Testy III'
         end
 
         it 'should be able to count the emails' do
