@@ -183,6 +183,13 @@ describe AddressBook::Person do
         @ab_person.should.be.person?
       end
 
+      it 'should get a value back for singular requests against multi-value attributes' do
+        @ab_person.email.should.equal @attributes[:emails].first[:value]
+        @ab_person.phone.should.equal @attributes[:phones].first[:value]
+        @ab_person.url.should.equal @attributes[:urls].first[:value]
+        @ab_person.address.should.equal @attributes[:addresses].first
+      end
+
       describe 'setting each field' do
         it 'should be able to set the first name' do
           @ab_person.first_name = 'new first name'

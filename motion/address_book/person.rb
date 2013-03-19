@@ -207,7 +207,7 @@ module AddressBook
       get_multi_valued(KABPersonPhoneProperty)
     end
 
-    def phones_values
+    def phone_values
       phones.attributes.map {|r| r[:value]}
     end
 
@@ -234,6 +234,11 @@ module AddressBook
     def im_profiles
       get_multi_valued(KABPersonInstantMessageProperty)
     end
+
+    def email; email_values.first; end
+    def phone; phone_values.first; end
+    def url; urls.attributes.first[:value]; end
+    def address; addresses.attributes.first; end
 
     def find_or_new
       if new_record?
