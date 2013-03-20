@@ -7,12 +7,9 @@ module AddressBook
       if existing_ab_person.nil?
         @ab_person = nil
         @attributes = attributes
-        @new_record = true
       else
         @ab_person = existing_ab_person
         @attributes = nil
-        # import_ab_person
-        @new_record = false
       end
     end
 
@@ -37,9 +34,7 @@ module AddressBook
     def save
       ABAddressBookAddRecord(address_book, ab_person, error)
       ABAddressBookSave(address_book, error)
-      # @address_book = nil #force refresh
       @attributes = nil # force refresh
-      @new_record = false
       uid
     end
 
@@ -57,7 +52,7 @@ module AddressBook
     alias :ab_record :ab_person
 
     def uid
-      @uid ||= (@ab_person && ABRecordGetRecordID(@ab_person))
+      ABRecordGetRecordID(ab_person)
     end
 
     def self.where(conditions)
@@ -254,7 +249,7 @@ module AddressBook
     end
 
     def new_record?
-      !!@new_record
+      uid == KABRecordInvalidID
     end
     alias :new? :new_record?
     def exists?
@@ -265,9 +260,8 @@ module AddressBook
       unless new_record?
         ABAddressBookRemoveRecord(address_book, ab_person, error)
         ABAddressBookSave(address_book, error)
-        @address_book = nil
-        @new_record = true
         @ab_person = nil
+        self
       end
     end
 
@@ -306,6 +300,8 @@ module AddressBook
 
     # instantiates ABPerson record from attributes
     def load_ab_person
+      @attributes ||= {}
+
       single_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_field(ab_property, attributes[attr_key])
