@@ -1,6 +1,6 @@
 module AddressBook
   class Person
-    attr_reader :error, :ab_person
+    attr_reader :error
 
     def initialize(attributes={}, existing_ab_person = nil, opts = {})
       @address_book = opts[:address_book]
@@ -54,6 +54,7 @@ module AddressBook
       end
       @ab_person
     end
+    alias :ab_record :ab_person
 
     def uid
       @uid ||= (@ab_person && ABRecordGetRecordID(@ab_person))
@@ -255,6 +256,7 @@ module AddressBook
     def new_record?
       !!@new_record
     end
+    alias :new? :new_record?
     def exists?
       !new_record?
     end

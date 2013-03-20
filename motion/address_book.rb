@@ -1,5 +1,7 @@
 module AddressBook
   class AddrBook
+    attr_reader :ab
+
     def initialize
       @ab = AddressBook.address_book
     end
@@ -9,10 +11,13 @@ module AddressBook
     def count
       ABAddressBookGetPersonCount(@ab)
     end
+    def new_person(attributes)
+      AddressBook::Person.new(attributes, nil, :address_book => @ab)
+    end
 
     def groups
-      Array(ABAddressBookCopyArrayOfAllGroups(@ab)).map do |ab_group|
-        AddressBook::Group.new(:ab_group => ab_group)
+      ABAddressBookCopyArrayOfAllGroups(@ab).map do |ab_group|
+        AddressBook::Group.new(:ab_group => ab_group, :address_book => @ab)
       end
     end
 
