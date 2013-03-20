@@ -258,9 +258,13 @@ describe AddressBook::Person do
           AddressBook.count.should.equal @before_count+1
         end
 
+        it 'should round-trip all attributes without loss' do
+          @ab_person.attributes.should.equal @attributes
+        end
+
         it 'should have scalar properties' do
           [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
-            @ab_person.attributes[attr].should.equal @attributes[attr]
+            @ab_person.send(attr).should.equal @attributes[attr]
           end
         end
 

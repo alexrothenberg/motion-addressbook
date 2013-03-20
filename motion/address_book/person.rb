@@ -235,6 +235,10 @@ module AddressBook
       get_multi_valued(KABPersonInstantMessageProperty)
     end
 
+    def related_names
+      get_multi_valued(KABPersonRelatedNamesProperty)
+    end
+
     def email; email_values.first; end
     def phone; phone_values.first; end
     def url; urls.attributes.first[:value]; end
@@ -293,7 +297,8 @@ module AddressBook
         KABPersonAddressProperty => :addresses,
         KABPersonURLProperty => :urls,
         KABPersonSocialProfileProperty => :social_profiles,
-        KABPersonInstantMessageProperty => :im_profiles
+        KABPersonInstantMessageProperty => :im_profiles,
+        KABPersonRelatedNamesProperty => :related_names
       }
     end
 
@@ -331,7 +336,9 @@ module AddressBook
       end
 
       multi_value_property_map.each do |ab_property, attr_key|
-        @attributes[attr_key] = get_multi_valued(ab_property)
+        if (value = get_multi_valued(ab_property).attributes) && value.any?
+          @attributes[attr_key] = value
+        end
       end
 
       @attributes
