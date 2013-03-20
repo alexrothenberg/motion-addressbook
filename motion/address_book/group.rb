@@ -1,3 +1,8 @@
+# Wrapper for iOS ABGroup
+#
+# * groups are saved to the database immediately upon new()
+# * members are added with <<
+#
 module AddressBook
   class Group
     attr_reader :attributes, :error
@@ -9,6 +14,7 @@ module AddressBook
         @ab_group = opts[:ab_group]
         @attributes = nil
       else
+        # create new
         @ab_group = nil
         @attributes = opts[:attributes]
       end
@@ -17,12 +23,6 @@ module AddressBook
     def address_book
       @address_book ||= AddressBook.address_book
     end
-
-    # def self.create(attributes)
-    #   group = new(attributes)
-    #   group.save
-    #   group
-    # end
 
     def save
       ABAddressBookAddRecord(address_book, ab_group, error)
@@ -92,9 +92,6 @@ module AddressBook
       end
 
       save
-      # Array(@attributes[:members]).each do |person_or_group|
-      #   self << person_or_group
-      # end
 
       @ab_group
     end
