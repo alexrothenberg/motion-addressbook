@@ -6,7 +6,7 @@ module AddressBook
       @address_book = opts[:address_book]
       if opts[:ab_group]
         # import existing
-        @ab_group = existing_ab_group
+        @ab_group = opts[:ab_group]
         @attributes = nil
       else
         @ab_group = nil
@@ -18,11 +18,11 @@ module AddressBook
       @address_book ||= AddressBook.address_book
     end
 
-    def self.create(attributes)
-      group = new(attributes)
-      group.save
-      group
-    end
+    # def self.create(attributes)
+    #   group = new(attributes)
+    #   group.save
+    #   group
+    # end
 
     def save
       ABAddressBookAddRecord(address_book, ab_group, error)
@@ -33,15 +33,25 @@ module AddressBook
     end
 
     def new?
-      uid != KABRecordInvalidID
+      uid == KABRecordInvalidID
+    end
+
+    def delete!
+      unless new?
+        ABAddressBookRemoveRecord(address_book, ab_group, error)
+        ABAddressBookSave(address_book, error)
+        @ab_group = nil
+        self
+      end
     end
 
     def ab_group
       @ab_group || convert_dict_to_ab
     end
+    alias :ab_record :ab_group
 
     def uid
-      @uid ||= (@ab_group && ABRecordGetRecordID(@ab_group))
+      ABRecordGetRecordID(ab_group)
     end
 
     def name
@@ -53,12 +63,12 @@ module AddressBook
     end
 
     def members
-      Array(ABGroupCopyArrayOfAllMembers(ab_group)).map do |ab_record|
+      (ABGroupCopyArrayOfAllMembers(ab_group) || []).map do |ab_record|
         case rectype = ABRecordGetRecordType(ab_record)
         when KABPersonType
-          AddressBook::Person.new(:ab_person => ab_record)
+          AddressBook::Person.new({}, ab_record, :address_book => address_book)
         when KABGroupType
-          AddressBook::Group.new(:ab_group => ab_record)
+          AddressBook::Group.new(:ab_group => ab_record, :address_book => address_book)
         else
           warn "Unrecognized record type #{rectype} in AB group #{name}"
           nil
@@ -67,7 +77,8 @@ module AddressBook
     end
 
     def <<(person_or_group)
-      ABGroupAddMember(ab_group, person_or_group, error)
+      raise "Must save member before adding to group" if person_or_group.new?
+      ABGroupAddMember(ab_group, person_or_group.ab_record, error)
     end
 
     private
@@ -80,9 +91,10 @@ module AddressBook
         ABRecordSetValue(@ab_group, KABGroupNameProperty, v, error)
       end
 
-      Array(@attributes[:members]).each do |person_or_group|
-        self << person_or_group
-      end
+      save
+      # Array(@attributes[:members]).each do |person_or_group|
+      #   self << person_or_group
+      # end
 
       @ab_group
     end
