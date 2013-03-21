@@ -21,6 +21,9 @@ module AddressBook
       p.save
       p
     end
+    def person(id)
+      (p = ABAddressBookGetPersonWithRecordID(ab, id)) && AddressBook::Person.new(nil, p, :address_book => ab)
+    end
 
     def groups
       ABAddressBookCopyArrayOfAllGroups(@ab).map do |ab_group|
