@@ -6,13 +6,20 @@ module AddressBook
       @ab = AddressBook.address_book
     end
     def people
-      AddressBook::Person.all
+      ABAddressBookCopyArrayOfAllPeople(ab).map do |ab_person|
+        AddressBook::Person.new({}, ab_person, :address_book => ab)
+      end
     end
     def count
       ABAddressBookGetPersonCount(@ab)
     end
     def new_person(attributes)
       AddressBook::Person.new(attributes, nil, :address_book => @ab)
+    end
+    def create_person(attributes)
+      p = AddressBook::Person.new(attributes, nil, :address_book => @ab)
+      p.save
+      p
     end
 
     def groups
@@ -23,6 +30,10 @@ module AddressBook
 
     def new_group(attributes)
       AddressBook::Group.new(:attributes => attributes, :address_book => @ab)
+    end
+
+    def notify_changes(callback, context)
+      ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
     end
   end
 
