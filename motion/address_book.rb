@@ -30,9 +30,11 @@ module AddressBook
         AddressBook::Group.new(:ab_group => ab_group, :address_book => @ab)
       end
     end
-
     def new_group(attributes)
       AddressBook::Group.new(:attributes => attributes, :address_book => @ab)
+    end
+    def group(id)
+      (g = ABAddressBookGetGroupWithRecordID(ab, id)) && Group.new(:ab_group => g, :address_book => @ab)
     end
 
     def notify_changes(callback, context)

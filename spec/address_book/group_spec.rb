@@ -49,6 +49,10 @@ describe AddressBook::Group do
     it "should have the expected members" do
       @group.members.map {|person| person.first_name}.should.equal ['Alice', 'Bob']
     end
+
+    it "should search by id" do
+      @ab.group(@group.uid).name.should.equal @group.name
+    end
   end
 
   # TODO: nested groups
