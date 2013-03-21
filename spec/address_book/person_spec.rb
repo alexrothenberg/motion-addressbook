@@ -15,6 +15,10 @@ describe AddressBook::Person do
         @alex.first_name.should == 'Alex'
         @alex.last_name.should  == 'Testy'
         @alex.email_values.should == [@data[:emails][0][:value]]
+        @alex.email.should == @data[:emails][0][:value]
+      end
+      it "should round-trip attributes without loss" do
+        @alex.attributes.should.equal @data
       end
       it 'should have a composite name' do
         @alex.composite_name.should == 'Alex Testy'
@@ -31,11 +35,12 @@ describe AddressBook::Person do
       end
       describe '.find_by_uid' do
         it 'should find match' do
-          alex = AddressBook::Person.find_by_uid @alex.uid
+          alex = @ab.person(@alex.uid)
           alex.uid.should == @alex.uid
           alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
+          alex.attributes.should.equal @alex.attributes
         end
       end
       describe '.find_all_by_email' do
@@ -43,7 +48,6 @@ describe AddressBook::Person do
           alexes = AddressBook::Person.find_all_by_email @email
           alexes.should.not.be.empty
           alexes.each do |alex|
-            # alex.uid.should != nil
             alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -57,7 +61,6 @@ describe AddressBook::Person do
       describe '.find_by_email' do
         it 'should find match' do
           alex = AddressBook::Person.find_by_email @email
-          # alex.uid.should.not.be.nil
           alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
@@ -72,7 +75,6 @@ describe AddressBook::Person do
           alexes = AddressBook::Person.where(:email => @email)
           alexes.should.not.be.empty
           alexes.each do |alex|
-            # alex.uid.should != nil
             alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -113,7 +115,6 @@ describe AddressBook::Person do
       it 'should find an existing person' do
         alex = AddressBook::Person.find_or_new_by_email(@email)
         alex.should.not.be.new_record
-        # alex.uid.should != nil
         alex.first_name.should == 'Alex'
         alex.last_name.should  == 'Testy'
         alex.emails.attributes.map{|r| r[:value]}.should == [@email]
@@ -122,7 +123,6 @@ describe AddressBook::Person do
         never_before_used_email = unique_email
         new_person = AddressBook::Person.find_or_new_by_email(never_before_used_email)
         new_person.should.be.new_record
-        # new_person.uid.should == nil
         new_person.email_values.should == [never_before_used_email]
         new_person.first_name.should == nil
       end
@@ -341,7 +341,7 @@ describe AddressBook::Person do
           { :label => 'work' },
           { :label => 'work', :url => 'http://state.edu/college' }
         ]
-        @ab_person = AddressBook::Person.create(@attributes)
+        @ab_person = @ab.create_person(@attributes)
       end
       after do
         @ab_person.delete!
@@ -366,7 +366,7 @@ describe AddressBook::Person do
 
   describe "organization record" do
     before do
-      @person = AddressBook::Person.new(
+      @person = @ab.new_person(
         :first_name => 'John',
         :last_name => 'Whorfin',
         :organization => 'Acme Inc.',
