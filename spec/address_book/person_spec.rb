@@ -1,9 +1,12 @@
 describe AddressBook::Person do
+  before do
+    @ab = AddressBook::AddrBook.new
+  end
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do
         @data = new_alex
-        @alex = AddressBook::Person.new(@data)
+        @alex = @ab.new_person(@data)
       end
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
@@ -21,7 +24,7 @@ describe AddressBook::Person do
     describe 'existing' do
       before do
         @email = unique_email
-        @alex = AddressBook::Person.create(new_alex(@email))
+        @alex = @ab.create_person(new_alex(@email))
       end
       after do
         @alex.delete!
@@ -83,16 +86,16 @@ describe AddressBook::Person do
 
       describe '.all' do
         it 'should have the person we created' do
-          all_names = AddressBook::Person.all.map do |person|
+          all_names = @ab.people.map do |person|
             [person.first_name, person.last_name]
           end
           all_names.should.include? [@alex.first_name, @alex.last_name]
         end
 
         it 'should get bigger when we create another' do
-          initial_people_count = AddressBook::Person.all.size
-          @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
-          AddressBook::Person.all.size.should == (initial_people_count + 1)
+          initial_people_count = @ab.people.size
+          @person = @ab.create_person({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
+          @ab.people.size.should == (initial_people_count + 1)
           @person.delete!
         end
       end
@@ -101,7 +104,7 @@ describe AddressBook::Person do
     describe '.find_or_new_by_XXX - new or existing' do
       before do
         @email = unique_email
-        @alex = AddressBook::Person.create(new_alex(@email))
+        @alex = @ab.create_person(new_alex(@email))
       end
       after do
         @alex.delete!
@@ -160,7 +163,7 @@ describe AddressBook::Person do
 
     describe 'a new person' do
       before do
-        @ab_person = AddressBook::Person.new(@attributes)
+        @ab_person = @ab.new_person(@attributes)
       end
 
       it 'should not be existing' do
@@ -297,8 +300,7 @@ describe AddressBook::Person do
 
     describe 'an existing person' do
       before do
-        @orig_ab_person = AddressBook::Person.new(@attributes)
-        @orig_ab_person.save
+        @orig_ab_person = @ab.create_person(@attributes)
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:emails][0][:value])
       end
       after do
@@ -380,7 +382,7 @@ describe AddressBook::Person do
 
   describe 'method missing magic' do
     before do
-      @person = AddressBook::Person.new
+      @person = @ab.new_person({})
     end
     describe 'getters' do
       it 'should have a getter for each attribute' do
