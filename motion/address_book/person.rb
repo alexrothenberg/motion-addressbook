@@ -269,6 +269,22 @@ module AddressBook
       ABRecordCopyCompositeName(ab_person)
     end
 
+    def person?
+      get_field(KABPersonKindProperty) == KABPersonKindPerson
+    end
+    def organization?
+      get_field(KABPersonKindProperty) == KABPersonKindOrganization
+    end
+
+    # must stash date values in instance variables or RubyMotion throws a malloc error
+    def creation_date
+      @creation_date = get_field(KABPersonCreationDateProperty)
+    end
+
+    def modification_date
+      @modification_date = get_field(KABPersonModificationDateProperty)
+    end
+
     private
 
     def single_value_property_map
@@ -356,13 +372,6 @@ module AddressBook
         multi_field = MultiValued.new(:attributes => values)
         ABRecordSetValue(ab_person, field, multi_field.ab_multi_value, nil)
       end
-    end
-
-    def person?
-      get_field(KABPersonKindProperty) == KABPersonKindPerson
-    end
-    def organization?
-      get_field(KABPersonKindProperty) == KABPersonKindOrganization
     end
 
     def existing_records
