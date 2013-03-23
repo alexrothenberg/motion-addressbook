@@ -196,7 +196,9 @@ module AddressBook
     end
 
     def get_multi_valued(field)
-      MultiValued.new(:ab_multi_value => ABRecordCopyValue(ab_person, field))
+      if mv = ABRecordCopyValue(ab_person, field)
+        MultiValued.new(:ab_multi_value => mv)
+      end
     end
 
     def phones
@@ -285,6 +287,12 @@ module AddressBook
       @modification_date = get_field(KABPersonModificationDateProperty)
     end
 
+    # replace all properties of an existing Person with new values
+    def replace(new_attributes)
+      @attributes = new_attributes
+      load_ab_person
+    end
+
     private
 
     def single_value_property_map
@@ -321,6 +329,8 @@ module AddressBook
       single_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_field(ab_property, attributes[attr_key])
+        else
+          remove_field(ab_property)
         end
       end
 
@@ -333,8 +343,12 @@ module AddressBook
       multi_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
+        else
+          remove_field(ab_property)
         end
       end
+
+      ab_person
     end
 
     def import_ab_person
@@ -350,8 +364,10 @@ module AddressBook
       end
 
       multi_value_property_map.each do |ab_property, attr_key|
-        if (value = get_multi_valued(ab_property).attributes) && value.any?
-          @attributes[attr_key] = value
+        if value = get_multi_valued(ab_property)
+          if value.attributes.any?
+            @attributes[attr_key] = value.attributes
+          end
         end
       end
 
@@ -365,6 +381,9 @@ module AddressBook
     end
     def get_field(field)
       ABRecordCopyValue(ab_person, field)
+    end
+    def remove_field(field)
+      ABRecordRemoveValue(ab_person, field, nil)
     end
 
     def set_multi_valued(field, values)
