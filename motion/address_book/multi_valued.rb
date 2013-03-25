@@ -45,7 +45,9 @@ module AddressBook
       else
         mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
         @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, dict_to_ab_record(rec), rec[:label], nil)
+          if value = dict_to_ab_record(rec)
+            ABMultiValueAddValueAndLabel(mv, value, rec[:label], nil)
+          end
         end
         mv
       end
@@ -72,9 +74,10 @@ module AddressBook
     }
 
     def dict_to_ab_record(h)
-      PropertyMap.each_with_object({}) do |(ab_key, attr_key), ab_record|
+      h = PropertyMap.each_with_object({}) do |(ab_key, attr_key), ab_record|
         ab_record[ab_key] = h[attr_key] if h[attr_key]
       end
+      h.any? ? h : nil
     end
 
     def ab_record_to_dict(ab_record)

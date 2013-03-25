@@ -63,4 +63,15 @@ describe AddressBook::MultiValued do
       ABMultiValueCopyValueAtIndex(internal, 1).keys.count.should.equal 3
     end
   end
+
+  describe 'a broken multi-value' do
+    before do
+      @attributes = [{:label => 'work', :value => nil}]
+      @mv = AddressBook::MultiValued.new(:attributes => @attributes)
+    end
+
+    it 'should ignore the missing entry' do
+      @mv.size.should.equal 0
+    end
+  end
 end
