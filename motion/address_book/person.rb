@@ -287,7 +287,7 @@ module AddressBook
       @modification_date = get_field(KABPersonModificationDateProperty)
     end
 
-    # replace all properties of an existing Person with new values
+    # replace *all* properties of an existing Person with new values
     def replace(new_attributes)
       @attributes = new_attributes
       load_ab_person
@@ -295,7 +295,7 @@ module AddressBook
 
     private
 
-    def single_value_property_map
+    def self.single_value_property_map
       {
         KABPersonFirstNameProperty => :first_name,
         KABPersonLastNameProperty => :last_name,
@@ -310,7 +310,7 @@ module AddressBook
       }
     end
 
-    def multi_value_property_map
+    def self.multi_value_property_map
       {
         KABPersonPhoneProperty => :phones,
         KABPersonEmailProperty => :emails,
@@ -322,11 +322,18 @@ module AddressBook
       }
     end
 
+    # [:phones, :emails, :addresses, :urls, :social_profiles, :im_profiles].each do |mvattr|
+    #   property = self.multi_value_property_map.invert[mvattr]
+    #   define_method(:"#{mvattr}=") do |array_of_hashes|
+    #     set_multi_valued(property, array_of_hashes)
+    #   end
+    # end
+
     # instantiates ABPerson record from attributes
     def load_ab_person
       @attributes ||= {}
 
-      single_value_property_map.each do |ab_property, attr_key|
+      Person.single_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_field(ab_property, attributes[attr_key])
         else
@@ -340,7 +347,7 @@ module AddressBook
         set_field(KABPersonKindProperty, KABPersonKindPerson)
       end
 
-      multi_value_property_map.each do |ab_property, attr_key|
+      Person.multi_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
         else
@@ -351,9 +358,10 @@ module AddressBook
       ab_person
     end
 
+    # populate attributes from existing ABPerson
     def import_ab_person
       @attributes = {}
-      single_value_property_map.each do |ab_property, attr_key|
+      Person.single_value_property_map.each do |ab_property, attr_key|
         if value = get_field(ab_property)
           @attributes[attr_key] = value
         end
@@ -363,7 +371,7 @@ module AddressBook
         @attributes[:is_org] = true
       end
 
-      multi_value_property_map.each do |ab_property, attr_key|
+      Person.multi_value_property_map.each do |ab_property, attr_key|
         if value = get_multi_valued(ab_property)
           if value.attributes.any?
             @attributes[attr_key] = value.attributes

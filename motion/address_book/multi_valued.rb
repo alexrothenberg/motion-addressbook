@@ -53,7 +53,7 @@ module AddressBook
 
     # these are for mapping fields in a kABMultiDictionaryPropertyType record
     # to keys in a standard hash (NSDictionary)
-    @@attribute_map = {
+    PropertyMap = {
       KABPersonAddressStreetKey => :street,
       KABPersonAddressCityKey => :city,
       KABPersonAddressStateKey => :state,
@@ -72,7 +72,7 @@ module AddressBook
     }
 
     def dict_to_ab_record(h)
-      @@attribute_map.each_with_object({}) do |(ab_key, attr_key), ab_record|
+      PropertyMap.each_with_object({}) do |(ab_key, attr_key), ab_record|
         ab_record[ab_key] = h[attr_key] if h[attr_key]
       end
     end
@@ -82,10 +82,27 @@ module AddressBook
       when String
         {:value => ab_record}
       else
-        @@attribute_map.each_with_object({}) do |(ab_key, attr_key), dict|
+        PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
           dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
         end
       end
+    end
+
+    def all
+      ABMultiValueCopyArrayOfAllValues(ab_multi_value)
+    end
+
+    def <<(rec)
+      case ABMultiValueGetPropertyType(ab_multi_value)
+      when KABMultiStringPropertyType
+        ABMultiValueAddValueAndLabel(ab_multi_value, rec[:value], rec[:label], nil)
+      when KABInvalidPropertyType
+        warn "Owie!"
+      else
+        ABMultiValueAddValueAndLabel(ab_multi_value, dict_to_ab_record(rec), rec[:label], nil)
+      end
+
+      @attributes = convert_multi_value_into_dictionary
     end
   end
 end
