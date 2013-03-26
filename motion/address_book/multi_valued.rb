@@ -2,15 +2,21 @@ module AddressBook
   class MultiValued
     def initialize(opts)
       unless opts.one?
-        raise ArgumentError, "MultiValued requires attributes *or* ab_multi_value: #{opts}"
+        raise ArgumentError, "MultiValued requires :attributes *or* :ab_multi_value argument"
       end
 
       if opts[:ab_multi_value]
-        @ab_multi_value = ABMultiValueCreateMutableCopy(opts[:ab_multi_value])
+        # @ab_multi_value = ABMultiValueCreateMutableCopy(opts[:ab_multi_value])
+        @ab_multi_value = opts[:ab_multi_value]
       else
         @attributes = opts[:attributes]
       end
     end
+
+    def count
+      ABMultiValueGetCount(ab_multi_value)
+    end
+    alias :size :count
 
     def attributes
       @attributes ||= convert_multi_value_into_dictionary
@@ -20,7 +26,7 @@ module AddressBook
       count.times.map do |i|
         label = ABMultiValueCopyLabelAtIndex(@ab_multi_value, i)
         label_val = ABAddressBookCopyLocalizedLabel(label)
-        data = from_address(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
+        data = ab_record_to_dict(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
         data.merge(:label => label_val)
       end
     end
@@ -30,37 +36,56 @@ module AddressBook
     end
 
     def convert_dictionary_into_multi_value
-      mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
-      @attributes.each do |rec|
-        ABMultiValueAddValueAndLabel(mv, rec_to_ab_address(rec), rec[:label], nil)
+      if @attributes.find {|rec| rec[:value]}
+        mv = ABMultiValueCreateMutable(KABMultiStringPropertyType)
+        @attributes.each do |rec|
+          ABMultiValueAddValueAndLabel(mv, rec[:value], rec[:label], nil)
+        end
+        mv
+      else
+        mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
+        @attributes.each do |rec|
+          ABMultiValueAddValueAndLabel(mv, dict_to_ab_record(rec), rec[:label], nil)
+        end
+        mv
       end
-      mv
     end
 
-    # must filter out any nil values
-    # runtime will crash if it attempts to store nils to the database
-    def rec_to_ab_address(h)
-      {
-        KABPersonAddressStreetKey => h[:street],
-        KABPersonAddressCityKey => h[:city],
-        KABPersonAddressStateKey => h[:state],
-        KABPersonAddressZIPKey => h[:postalcode],
-        KABPersonAddressCountryKey => h[:country]
-      }.reject {|k,v| v.nil?}
+    # these are for mapping fields in a kABMultiDictionaryPropertyType record
+    # to keys in a standard hash (NSDictionary)
+    @@attribute_map = {
+      KABPersonAddressStreetKey => :street,
+      KABPersonAddressCityKey => :city,
+      KABPersonAddressStateKey => :state,
+      KABPersonAddressZIPKey => :postalcode,
+      KABPersonAddressCountryKey => :country,
+      KABPersonAddressCountryCodeKey => :country_code,
+
+      KABPersonSocialProfileURLKey => :url,
+      KABPersonSocialProfileServiceKey => :service,
+      KABPersonSocialProfileUsernameKey => :username,
+      KABPersonSocialProfileUserIdentifierKey => :userid,
+
+      # these keys are identical to the SocialProfile keys above
+      KABPersonInstantMessageServiceKey => :service,
+      KABPersonInstantMessageUsernameKey => :username
+    }
+
+    def dict_to_ab_record(h)
+      @@attribute_map.each_with_object({}) do |(ab_key, attr_key), ab_record|
+        ab_record[ab_key] = h[attr_key] if h[attr_key]
+      end
     end
 
-    def from_address(h)
-      {
-        :street => h[KABPersonAddressStreetKey],
-        :city => h[KABPersonAddressCityKey],
-        :state => h[KABPersonAddressStateKey],
-        :postalcode => h[KABPersonAddressZIPKey],
-        :country => h[KABPersonAddressCountryKey]
-      }.reject {|k,v| v.nil?}
-    end
-
-    def count
-      ABMultiValueGetCount(ab_multi_value)
+    def ab_record_to_dict(ab_record)
+      case ab_record
+      when String
+        {:value => ab_record}
+      else
+        @@attribute_map.each_with_object({}) do |(ab_key, attr_key), dict|
+          dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
+        end
+      end
     end
   end
 end

@@ -9,6 +9,10 @@ module AddressBook
     end
   end
 
+  def count
+    ABAddressBookGetPersonCount(address_book)
+  end
+
   def ios6_create
     error = nil
     @address_book = ABAddressBookCreateWithOptions(nil, error)

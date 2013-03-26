@@ -2,20 +2,27 @@ describe AddressBook::Person do
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do
-        @alex = AddressBook::Person.new(:first_name => 'Alex', :last_name => 'Testy', :email => 'alex_testy@example.com')
+        @data = new_alex
+        @alex = AddressBook::Person.new(@data)
       end
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
+        @alex.uid.should.be.nil
+      end
+      it 'should have initial values' do
         @alex.first_name.should == 'Alex'
         @alex.last_name.should  == 'Testy'
-        @alex.email_values.should     == ['alex_testy@example.com']
+        @alex.email_values.should == [@data[:emails][0][:value]]
+      end
+      it 'should have a composite name' do
+        @alex.composite_name.should == 'Alex Testy'
       end
     end
 
     describe 'existing' do
       before do
         @email = unique_email
-        @alex = AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
+        @alex = AddressBook::Person.create(new_alex(@email))
       end
       after do
         @alex.delete!
@@ -25,7 +32,7 @@ describe AddressBook::Person do
           @alex.uid.should.not.be.nil
           alex = AddressBook::Person.find_by_uid @alex.uid
           alex.uid.should == @alex.uid
-          alex.email.should == @email
+          alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
         end
@@ -36,7 +43,7 @@ describe AddressBook::Person do
           alexes.should.not.be.empty
           alexes.each do |alex|
             alex.uid.should != nil
-            alex.email.should == @email
+            alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
           end
@@ -50,7 +57,7 @@ describe AddressBook::Person do
         it 'should find match' do
           alex = AddressBook::Person.find_by_email @email
           alex.uid.should.not.be.nil
-          alex.email.should == @email
+          alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
         end
@@ -65,7 +72,7 @@ describe AddressBook::Person do
           alexes.should.not.be.empty
           alexes.each do |alex|
             alex.uid.should != nil
-            alex.email.should == @email
+            alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
           end
@@ -96,7 +103,7 @@ describe AddressBook::Person do
     describe '.find_or_new_by_XXX - new or existing' do
       before do
         @email = unique_email
-        @alex = AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Testy', :email => @email)
+        @alex = AddressBook::Person.create(new_alex(@email))
       end
       after do
         @alex.delete!
@@ -106,17 +113,17 @@ describe AddressBook::Person do
         alex = AddressBook::Person.find_or_new_by_email(@email)
         alex.should.not.be.new_record
         alex.uid.should != nil
-        alex.email.should      == @email
         alex.first_name.should == 'Alex'
         alex.last_name.should  == 'Testy'
+        alex.emails.attributes.map{|r| r[:value]}.should == [@email]
       end
       it 'should return new person when no match found' do
         never_before_used_email = unique_email
-        alex = AddressBook::Person.find_or_new_by_email(never_before_used_email)
-        alex.should.be.new_record
-        alex.uid.should == nil
-        alex.email.should == never_before_used_email
-        alex.first_name.should == nil
+        new_person = AddressBook::Person.find_or_new_by_email(never_before_used_email)
+        new_person.should.be.new_record
+        new_person.uid.should == nil
+        new_person.email_values.should == [never_before_used_email]
+        new_person.first_name.should == nil
       end
     end
   end
@@ -124,12 +131,31 @@ describe AddressBook::Person do
   describe 'save' do
     before do
       @attributes = {
-        :first_name=>'Alex', :last_name=>'Testy',
-        :job_title => 'Developer', :department => 'Development', :organization => 'The Company',
-        :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
-        :email => unique_email,
+        :first_name=>'Alex',
+        :middle_name=>'Q.',
+        :last_name=>'Testy',
+        :suffix => 'III',
+        :nickname => 'Geekster',
+        :job_title => 'Developer',
+        :department => 'Development',
+        :organization => 'The Company',
+        :note => 'some important guy',
+        # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
+        :phones => [
+          {:label => 'mobile', :value => '123 456 7899'},
+          {:label => 'office', :value => '987 654 3210'}
+        ],
+        # :email => unique_email,
+        :emails => [
+          {:label => 'work', :value => unique_email}
+        ],
         :addresses => [
           {:label => 'home', :city => 'Dogpatch', :state => 'KY'}
+        ],
+        :urls => [
+          { :label => 'home page', :value => "http://www.mysite.com/" },
+          { :label => 'work', :value => 'http://dept.bigco.com/' },
+          { :label => 'school', :value => 'http://state.edu/college' }
         ]
       }
     end
@@ -147,9 +173,21 @@ describe AddressBook::Person do
       it 'should be able to get each of the single value fields' do
         @ab_person.first_name.should.equal   @attributes[:first_name  ]
         @ab_person.last_name.should.equal    @attributes[:last_name   ]
+        @ab_person.middle_name.should.equal    @attributes[:middle_name   ]
+        @ab_person.suffix.should.equal    @attributes[:suffix   ]
+        @ab_person.nickname.should.equal    @attributes[:nickname   ]
         @ab_person.job_title.should.equal    @attributes[:job_title   ]
         @ab_person.department.should.equal   @attributes[:department  ]
         @ab_person.organization.should.equal @attributes[:organization]
+        @ab_person.note.should.equal @attributes[:note]
+        @ab_person.should.be.person?
+      end
+
+      it 'should get a value back for singular requests against multi-value attributes' do
+        @ab_person.email.should.equal @attributes[:emails].first[:value]
+        @ab_person.phone.should.equal @attributes[:phones].first[:value]
+        @ab_person.url.should.equal @attributes[:urls].first[:value]
+        @ab_person.address.should.equal @attributes[:addresses].first
       end
 
       describe 'setting each field' do
@@ -182,24 +220,29 @@ describe AddressBook::Person do
         end
       end
 
-      it 'should be able to get the phone numbers' do
-        @ab_person.phone_number_values.should.equal [@attributes[:mobile_phone], @attributes[:office_phone] ]
+      it 'should be able to count & get the phone numbers' do
+        @ab_person.phones.size.should.equal 2
+        @ab_person.phones.attributes.should.equal @attributes[:phones]
       end
 
-      it 'should be able to count the emails' do
+      it 'should be able to count & get the emails' do
         @ab_person.emails.size.should.equal 1
+        @ab_person.emails.attributes.should.equal @attributes[:emails]
       end
 
-      it 'should be able to get the emails' do
-        @ab_person.email_values.should.equal [@attributes[:email] ]
-      end
-
-      it 'should be able to count the addresses' do
+      it 'should be able to count & inspect the addresses' do
         @ab_person.addresses.count.should.equal 1
+        @ab_person.addresses.attributes.should.equal @attributes[:addresses]
+      end
+
+      it 'should be able to count & inspect the URLs' do
+        @ab_person.urls.count.should.equal 3
+        @ab_person.urls.attributes.should.equal @attributes[:urls]
       end
 
       describe 'once saved' do
         before do
+          @before_count = AddressBook.count
           @ab_person.save
         end
         after do
@@ -211,13 +254,26 @@ describe AddressBook::Person do
           @ab_person.should.be.exists
         end
 
+        it "should increment the count" do
+          AddressBook.count.should.equal @before_count+1
+        end
+
+        it 'should have scalar properties' do
+          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
+            @ab_person.attributes[attr].should.equal @attributes[attr]
+          end
+        end
+
+        it 'should have a composite name' do
+          @ab_person.composite_name.should == 'Alex Q. Testy III'
+        end
+
         it 'should be able to count the emails' do
           @ab_person.emails.size.should.equal 1
         end
 
         it 'should be able to count the addresses' do
           @ab_person.addresses.count.should.equal 1
-          # @ab_person.addresses.should.equal [@attributes[:addresses]]
         end
 
         it 'should be able to retrieve the addresses' do
@@ -241,7 +297,7 @@ describe AddressBook::Person do
       before do
         @orig_ab_person = AddressBook::Person.new(@attributes)
         @orig_ab_person.save
-        @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:email])
+        @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:emails][0][:value])
       end
       after do
         @ab_person.delete!
@@ -265,11 +321,58 @@ describe AddressBook::Person do
         end
 
         it 'should be able to get each of the single value fields' do
-          @match = AddressBook::Person.find_by_email(@ab_person.email)
+          @match = AddressBook::Person.find_by_email(@ab_person.email_values.first)
           @match.first_name.should == 'New First Name'
           @match.uid.should.equal @ab_person.uid
         end
       end
+    end
+
+    describe "input with bad attributes" do
+      before do
+        @attributes[:junk] = 'this should be ignored'
+        @attributes[:last_name] = nil
+        @attributes[:urls] = [
+          { :value => "http://www.mysite.com/" },
+          { :label => 'work' },
+          { :label => 'work', :url => 'http://state.edu/college' }
+        ]
+        @ab_person = AddressBook::Person.create(@attributes)
+      end
+      after do
+        @ab_person.delete!
+      end
+
+      # entries with missing label should be OK
+      # entries with missing value should be ignored
+      # entries with illegal fields should raise an exception
+      it "should save without errors" do
+        @ab_person.should.be.exists
+      end
+
+      it "should have the expected values" do
+        @ab_person.urls.count.should.equal 1
+        urldata = [{:value => "http://www.mysite.com/", :label => ""}]
+        @ab_person.urls.attributes.should.equal urldata
+        @ab_person.attributes.keys.should.not.include?(:junk)
+        @ab_person.last_name.should.equal nil
+      end
+    end
+  end
+
+  describe "organization record" do
+    before do
+      @person = AddressBook::Person.new(
+        :first_name => 'John',
+        :last_name => 'Whorfin',
+        :organization => 'Acme Inc.',
+        :is_org => true,
+        :note => 'big important company'
+      )
+    end
+
+    it "should know that it is an organization" do
+      @person.should.be.organization?
     end
   end
 
