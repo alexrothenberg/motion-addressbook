@@ -24,6 +24,9 @@ module AddressBook
     def person(id)
       (p = ABAddressBookGetPersonWithRecordID(ab, id)) && Person.new(nil, p, :address_book => ab)
     end
+    def changedSince(timestamp)
+      people.select {|p| p.modification_date.compare(timestamp) > 0}
+    end
 
     def groups
       ABAddressBookCopyArrayOfAllGroups(@ab).map do |ab_group|

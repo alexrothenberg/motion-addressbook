@@ -11,6 +11,9 @@ describe AddressBook::Person do
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
       end
+      it 'should have no mod date' do
+        @alex.modification_date.should.be.nil
+      end
       it 'should have initial values' do
         @alex.first_name.should == 'Alex'
         @alex.last_name.should  == 'Testy'
@@ -32,6 +35,9 @@ describe AddressBook::Person do
       end
       after do
         @alex.delete!
+      end
+      it 'should have a mod date' do
+        @alex.modification_date.should.not.be.nil
       end
       describe '.find_by_uid' do
         it 'should find match' do
@@ -169,6 +175,7 @@ describe AddressBook::Person do
       it 'should not be existing' do
         @ab_person.should.be.new_record
         @ab_person.should.not.be.exists
+        @ab_person.modification_date.should.be.nil
       end
 
       it 'should be able to get each of the single value fields' do
@@ -243,6 +250,7 @@ describe AddressBook::Person do
 
       describe 'once saved' do
         before do
+          @before = Time.now
           @before_count = AddressBook.count
           @ab_person.save
         end
@@ -253,6 +261,8 @@ describe AddressBook::Person do
         it 'should no longer be new' do
           @ab_person.should.not.be.new_record
           @ab_person.should.be.exists
+          @ab_person.modification_date.should.not.be.nil
+          should.satisfy {@ab_person.modification_date > @before}
         end
 
         it "should increment the count" do
