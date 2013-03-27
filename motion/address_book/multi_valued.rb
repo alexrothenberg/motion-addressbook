@@ -35,6 +35,10 @@ module AddressBook
       @ab_multi_value ||= convert_dictionary_into_multi_value
     end
 
+    def localized_label(str)
+      LabelMap[str] || str
+    end
+
     def convert_dictionary_into_multi_value
       this_type = multi_value_property_type
       mv = ABMultiValueCreateMutable(this_type)
@@ -42,16 +46,16 @@ module AddressBook
       case this_type
       when KABMultiStringPropertyType
         @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, rec[:value], rec[:label], nil)
+          ABMultiValueAddValueAndLabel(mv, rec[:value], localized_label(rec[:label]), nil)
         end
       when KABMultiDateTimePropertyType
         @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, rec[:date], rec[:label], nil)
+          ABMultiValueAddValueAndLabel(mv, rec[:date], localized_label(rec[:label]), nil)
         end
       else # KABMultiDictionaryPropertyType
         @attributes.each do |rec|
           if value = dict_to_ab_record(rec)
-            ABMultiValueAddValueAndLabel(mv, value, rec[:label], nil)
+            ABMultiValueAddValueAndLabel(mv, value, localized_label(rec[:label]), nil)
           end
         end
       end
@@ -87,6 +91,19 @@ module AddressBook
       # these keys are identical to the SocialProfile keys above
       KABPersonInstantMessageServiceKey => :service,
       KABPersonInstantMessageUsernameKey => :username
+    }
+
+    LabelMap = {
+      "mobile"   => KABPersonPhoneMobileLabel ,
+      "iphone"   => KABPersonPhoneIPhoneLabel ,
+      "main"     => KABPersonPhoneMainLabel   ,
+      "home_fax" => KABPersonPhoneHomeFAXLabel,
+      "work_fax" => KABPersonPhoneWorkFAXLabel,
+      "pager"    => KABPersonPhonePagerLabel  ,
+      "work"     => KABWorkLabel              ,
+      "home"     => KABHomeLabel              ,
+      "other"    => KABOtherLabel             ,
+      "home page"=> KABPersonHomePageLabel
     }
 
     def dict_to_ab_record(h)

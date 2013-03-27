@@ -1,4 +1,14 @@
 describe AddressBook::MultiValued do
+  describe 'a new multi-value' do
+    it 'should convert to localized labels' do
+      AddressBook::MultiValued::LabelMap.size.should.equal 10
+      AddressBook::MultiValued::LabelMap.each do |label, localized|
+        mv = AddressBook::MultiValued.new(:attributes => [{:label => label, :value => 'test'}])
+        ABMultiValueCopyLabelAtIndex(mv.ab_multi_value, 0).should.equal localized
+      end
+    end
+  end
+
   describe 'a string multi-value' do
     before do
       @attributes = [
@@ -57,8 +67,8 @@ describe AddressBook::MultiValued do
     it 'should have correct internal representation' do
       internal = @mv.ab_multi_value
       ABMultiValueGetCount(internal).should.equal 2
-      ABMultiValueCopyLabelAtIndex(internal, 0).should.equal "home"
-      ABMultiValueCopyLabelAtIndex(internal, 1).should.equal "work"
+      ABMultiValueCopyLabelAtIndex(internal, 0).should.equal KABHomeLabel
+      ABMultiValueCopyLabelAtIndex(internal, 1).should.equal KABWorkLabel
       ABMultiValueCopyValueAtIndex(internal, 0).keys.count.should.equal 3
       ABMultiValueCopyValueAtIndex(internal, 1).keys.count.should.equal 3
     end
