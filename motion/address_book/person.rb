@@ -278,13 +278,13 @@ module AddressBook
       get_field(KABPersonKindProperty) == KABPersonKindOrganization
     end
 
-    # must stash date values in instance variables or RubyMotion throws a malloc error
-    def creation_date
-      @creation_date = get_field(KABPersonCreationDateProperty)
-    end
-
+    # 130326 DO NOT USE: RubyMotion blows up when fetching NSDate properties
     def modification_date
       @modification_date ||= get_field(KABPersonModificationDateProperty)
+    end
+
+    def creation_date
+      @creation_date = get_field(KABPersonCreationDateProperty)
     end
 
     # replace *all* properties of an existing Person with new values
@@ -318,16 +318,15 @@ module AddressBook
         KABPersonURLProperty => :urls,
         KABPersonSocialProfileProperty => :social_profiles,
         KABPersonInstantMessageProperty => :im_profiles,
-        KABPersonRelatedNamesProperty => :related_names
+        KABPersonRelatedNamesProperty => :related_names,
+        # KABPersonDateProperty => :dates
       }
     end
 
-    # [:phones, :emails, :addresses, :urls, :social_profiles, :im_profiles].each do |mvattr|
-    #   property = self.multi_value_property_map.invert[mvattr]
-    #   define_method(:"#{mvattr}=") do |array_of_hashes|
-    #     set_multi_valued(property, array_of_hashes)
-    #   end
-    # end
+    # 130326 accessing NSDate properties currently blows up RubyMotion
+    def broken_properties
+      [KABPersonBirthdayProperty, KABPersonDateProperty]
+    end
 
     # instantiates ABPerson record from attributes
     def load_ab_person

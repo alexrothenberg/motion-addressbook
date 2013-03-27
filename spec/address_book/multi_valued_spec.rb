@@ -74,4 +74,15 @@ describe AddressBook::MultiValued do
       @mv.size.should.equal 0
     end
   end
+
+  describe 'a date multi-value' do
+    before do
+      @attributes = [{:label => 'anniversary', :date => Time.now}]
+      @mv = AddressBook::MultiValued.new(:attributes => @attributes)
+    end
+
+    it 'should ignore the missing entry' do
+      @mv.attributes.should.equal @attributes
+    end
+  end
 end

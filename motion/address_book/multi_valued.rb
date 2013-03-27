@@ -36,20 +36,36 @@ module AddressBook
     end
 
     def convert_dictionary_into_multi_value
-      if @attributes.find {|rec| rec[:value]}
-        mv = ABMultiValueCreateMutable(KABMultiStringPropertyType)
+      this_type = multi_value_property_type
+      mv = ABMultiValueCreateMutable(this_type)
+
+      case this_type
+      when KABMultiStringPropertyType
         @attributes.each do |rec|
           ABMultiValueAddValueAndLabel(mv, rec[:value], rec[:label], nil)
         end
-        mv
-      else
-        mv = ABMultiValueCreateMutable(KABMultiDictionaryPropertyType)
+      when KABMultiDateTimePropertyType
+        @attributes.each do |rec|
+          ABMultiValueAddValueAndLabel(mv, rec[:date], rec[:label], nil)
+        end
+      else # KABMultiDictionaryPropertyType
         @attributes.each do |rec|
           if value = dict_to_ab_record(rec)
             ABMultiValueAddValueAndLabel(mv, value, rec[:label], nil)
           end
         end
-        mv
+      end
+
+      mv
+    end
+
+    def multi_value_property_type
+      if @attributes.find {|rec| rec[:value]}
+        KABMultiStringPropertyType
+      elsif @attributes.find {|rec| rec[:date]}
+        KABMultiDateTimePropertyType
+      else
+        KABMultiDictionaryPropertyType
       end
     end
 
@@ -84,6 +100,8 @@ module AddressBook
       case ab_record
       when String
         {:value => ab_record}
+      when Time
+        {:date => ab_record}
       else
         PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
           dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
@@ -99,6 +117,8 @@ module AddressBook
       case ABMultiValueGetPropertyType(ab_multi_value)
       when KABMultiStringPropertyType
         ABMultiValueAddValueAndLabel(ab_multi_value, rec[:value], rec[:label], nil)
+      when KABMultiDateTimePropertyType
+        ABMultiValueAddValueAndLabel(ab_multi_value, rec[:date], rec[:label], nil)
       when KABInvalidPropertyType
         warn "Owie!"
       else
