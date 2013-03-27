@@ -284,7 +284,7 @@ module AddressBook
     end
 
     def modification_date
-      @modification_date = get_field(KABPersonModificationDateProperty)
+      @modification_date ||= get_field(KABPersonModificationDateProperty)
     end
 
     # replace *all* properties of an existing Person with new values
@@ -361,6 +361,8 @@ module AddressBook
     # populate attributes from existing ABPerson
     def import_ab_person
       @attributes = {}
+      @modification_date = nil
+
       Person.single_value_property_map.each do |ab_property, attr_key|
         if value = get_field(ab_property)
           @attributes[attr_key] = value

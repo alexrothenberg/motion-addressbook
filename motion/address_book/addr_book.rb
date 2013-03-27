@@ -25,7 +25,7 @@ module AddressBook
       (p = ABAddressBookGetPersonWithRecordID(ab, id)) && Person.new(nil, p, :address_book => ab)
     end
     def changedSince(timestamp)
-      people.select {|p| p.modification_date.compare(timestamp) > 0}
+      people.select {|p| p.modification_date > timestamp}
     end
 
     def groups
