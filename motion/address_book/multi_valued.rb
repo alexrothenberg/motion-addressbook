@@ -9,7 +9,6 @@ module AddressBook
 
       if opts[:ab_multi_value]
         @ab_multi_value = ABMultiValueCreateMutableCopy(opts[:ab_multi_value])
-        # @ab_multi_value = opts[:ab_multi_value]
       else
         @attributes = opts[:attributes]
         raise ArgumentError, "Empty multi-value objects are not allowed" if @attributes.empty?
@@ -129,12 +128,8 @@ module AddressBook
       end
     end
 
-    def all
-      ABMultiValueCopyArrayOfAllValues(ab_multi_value)
-    end
-
     def <<(rec)
-      case multi_value_property_type #mv_type
+      case multi_value_property_type
       when KABMultiStringPropertyType
         ABMultiValueAddValueAndLabel(ab_multi_value, rec[:value], localized_label(rec[:label]), nil)
       when KABMultiDateTimePropertyType
