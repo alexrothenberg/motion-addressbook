@@ -7,6 +7,10 @@ describe AddressBook::MultiValued do
         ABMultiValueCopyLabelAtIndex(mv.ab_multi_value, 0).should.equal localized
       end
     end
+
+    it "should not allow empty input" do
+      ->{AddressBook::MultiValued.new(:attributes => [])}.should.raise ArgumentError
+    end
   end
 
   describe 'a string multi-value' do
@@ -34,6 +38,16 @@ describe AddressBook::MultiValued do
       abmv = @mv.ab_multi_value
       mv2 = AddressBook::MultiValued.new(:ab_multi_value => abmv)
       mv2.attributes.should.equal @attributes
+    end
+
+    describe 'after appending' do
+      before do
+        @mv << {:label => 'work', :value => 'another string'}
+      end
+
+      it "should have new values" do
+        @mv.count.should.equal 4
+      end
     end
   end
 
@@ -72,6 +86,16 @@ describe AddressBook::MultiValued do
       ABMultiValueCopyValueAtIndex(internal, 0).keys.count.should.equal 3
       ABMultiValueCopyValueAtIndex(internal, 1).keys.count.should.equal 3
     end
+
+    describe 'after appending' do
+      before do
+        @mv << {:label => 'summer', :city => 'Key West', :state => 'FL'}
+      end
+
+      it "should have new values" do
+        @mv.count.should.equal 3
+      end
+    end
   end
 
   describe 'a broken multi-value' do
@@ -91,7 +115,7 @@ describe AddressBook::MultiValued do
       @mv = AddressBook::MultiValued.new(:attributes => @attributes)
     end
 
-    it 'should ignore the missing entry' do
+    it 'should round-trip input' do
       @mv.attributes.should.equal @attributes
     end
   end

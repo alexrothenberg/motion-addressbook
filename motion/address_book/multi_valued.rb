@@ -1,5 +1,7 @@
 module AddressBook
   class MultiValued
+    attr_reader :mv_type
+
     def initialize(opts)
       unless opts.one?
         raise ArgumentError, "MultiValued requires :attributes *or* :ab_multi_value argument"
@@ -10,6 +12,7 @@ module AddressBook
         @ab_multi_value = opts[:ab_multi_value]
       else
         @attributes = opts[:attributes]
+        raise ArgumentError, "Empty multi-value objects are not allowed" if @attributes.empty?
       end
     end
 
@@ -40,10 +43,10 @@ module AddressBook
     end
 
     def convert_dictionary_into_multi_value
-      this_type = multi_value_property_type
-      mv = ABMultiValueCreateMutable(this_type)
+      @mv_type = multi_value_property_type
+      mv = ABMultiValueCreateMutable(mv_type)
 
-      case this_type
+      case mv_type
       when KABMultiStringPropertyType
         @attributes.each do |rec|
           ABMultiValueAddValueAndLabel(mv, rec[:value], localized_label(rec[:label]), nil)
@@ -131,15 +134,15 @@ module AddressBook
     end
 
     def <<(rec)
-      case ABMultiValueGetPropertyType(ab_multi_value)
+      case multi_value_property_type #mv_type
       when KABMultiStringPropertyType
-        ABMultiValueAddValueAndLabel(ab_multi_value, rec[:value], rec[:label], nil)
+        ABMultiValueAddValueAndLabel(ab_multi_value, rec[:value], localized_label(rec[:label]), nil)
       when KABMultiDateTimePropertyType
-        ABMultiValueAddValueAndLabel(ab_multi_value, rec[:date], rec[:label], nil)
-      when KABInvalidPropertyType
-        warn "Owie!"
+        ABMultiValueAddValueAndLabel(ab_multi_value, rec[:date], localized_label(rec[:label]), nil)
+      when KABMultiDictionaryPropertyType
+        ABMultiValueAddValueAndLabel(ab_multi_value, dict_to_ab_record(rec), localized_label(rec[:label]), nil)
       else
-        ABMultiValueAddValueAndLabel(ab_multi_value, dict_to_ab_record(rec), rec[:label], nil)
+        raise "Unknown MultiValue property type"
       end
 
       @attributes = convert_multi_value_into_dictionary
