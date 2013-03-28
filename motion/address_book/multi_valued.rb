@@ -142,5 +142,11 @@ module AddressBook
 
       @attributes = convert_multi_value_into_dictionary
     end
+
+    def first_for(label)
+      if rec = attributes.find {|r| r[:label] == label.to_s}
+        rec[:value] ? rec[:value] : rec
+      end
+    end
   end
 end

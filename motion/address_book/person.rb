@@ -91,8 +91,8 @@ module AddressBook
     end
 
     def method_missing(name, *args)
-      if attribute_name = getter?(name)
-        get(attribute_name)
+      if getter?(name)
+        get(name)
       elsif attribute_name = setter?(name)
         set(attribute_name, args.first)
       else
@@ -118,9 +118,12 @@ module AddressBook
 
     def getter?(method_name)
       if self.class.is_attribute? method_name
-        method_name
+        true
       else
-        nil
+        attribute = method_name.split('_').last
+        if ['email', 'phone'].include?(attribute)
+          true
+        end
       end
     end
     def setter?(method_name)
@@ -157,7 +160,9 @@ module AddressBook
     end
 
     def get(attribute_name)
-      attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
+      label, attribute = attribute_name.split('_')
+      self.send("#{attribute}s").first_for(label)
+      # attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
     end
 
     def set(attribute_name, value)
