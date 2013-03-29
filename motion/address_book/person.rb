@@ -82,7 +82,7 @@ module AddressBook
         :job_title    => KABPersonJobTitleProperty,
         :department   => KABPersonDepartmentProperty,
         :organization => KABPersonOrganizationProperty,
-        :dob    => KABPersonBirthdayProperty,
+        # :dob    => KABPersonBirthdayProperty,
         :note    => KABPersonNoteProperty
       }
     end
@@ -297,7 +297,7 @@ module AddressBook
         KABPersonJobTitleProperty => :job_title,
         KABPersonDepartmentProperty => :department,
         KABPersonOrganizationProperty => :organization,
-        KABPersonBirthdayProperty => :dob,
+        # KABPersonBirthdayProperty => :dob,
         KABPersonNoteProperty => :note
       }
     end
