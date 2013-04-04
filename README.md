@@ -1,5 +1,4 @@
-# Addressbook for RubyMotion[![Build Status](https://secure.travis-ci.org/alexrothenberg/motion-addressbook.png)](http://travis-ci.org/alexrothenberg/motion-addressbook) [![Code Climate](https://codeclimate.com/github/alexrothen\
-berg/motion-addressbook.png)](https://codeclimate.com/github/alexrothenberg/motion-addressbook) [![Gem Version](https://badge.fury.io/rb/motion-addressbook.png)](http://badge.fury.io/rb/motion-addressbook)
+# Addressbook for RubyMotion[![Build Status](https://secure.travis-ci.org/alexrothenberg/motion-addressbook.png)](http://travis-ci.org/alexrothenberg/motion-addressbook) [![Code Climate](https://codeclimate.com/github/alexrothenberg/motion-addressbook.png)](https://codeclimate.com/github/alexrothenberg/motion-addressbook) [![Gem Version](https://badge.fury.io/rb/motion-addressbook.png)](http://badge.fury.io/rb/motion-addressbook)
 
 A RubyMotion wrapper around the iOS Address Book framework for RubyMotion apps.
 
