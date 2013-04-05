@@ -4,3 +4,8 @@ before_install:
   - rvm use 1.9.3
 install: bundle install
 script: bundle exec rake spec
+notifications:
+  email:
+    recipients:
+      - alex@alexrothenberg.com
+      - jmay@pobox.com
