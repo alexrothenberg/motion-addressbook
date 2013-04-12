@@ -140,7 +140,7 @@ AddressBook::Person.find_or_new_by_email('alex@example.com')
 ### Create a new Contact and save in Contacts app
 
 ```ruby
-AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :email => 'alex@example.com')
+AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :email => [{ :value => 'alex@example.com', :label => 'Home'}], , :phones => [{ :value => '9920149993', :label => 'Mobile'}])
 # => #<AddressBook::Person:0xe4e3a80 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0xe4bbef0>>
 ```
 
