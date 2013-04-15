@@ -448,4 +448,34 @@ describe AddressBook::Person do
       end
     end
   end
+
+  describe "multiple emails/phone #'s handling" do
+    it "should accept multiple emails/phone #'s as array of strings for new records" do
+      person = @ab.new_person(
+        :first_name => 'Ashish',
+        :last_name => 'Upadhyay',
+        :email => ['a@mail.com','a@mail.com','a@mail.com'],
+        :phones => ['1212999222','1212999333','1212999444'],
+      )
+      person.should.be.new_record
+    end
+    it "should accept multiple emails/phone #'s as array of hashes for new records" do
+      person = @ab.new_person(
+        :first_name => 'Ashish',
+        :last_name => 'Upadhyay',
+        :email => [{ :value => 'a@mail.com' } , { :value => 'a@mail.com' } , { :value => 'a@mail.com' } ] ,
+        :phones => [{ :value => '1212999222' } , { :value => '1212999333' } , { :value => '1212999444' } ] ,
+      )
+      person.should.be.new_record
+    end
+    it "should accept multiple emails/phone #'s as array of combination of strings or hashes for new records" do
+      person = @ab.new_person(
+        :first_name => 'Ashish',
+        :last_name => 'Upadhyay',
+        :email => [ { :value => 'a@mail.com' } , 'a@mail.com' , { :value => 'a@mail.com', :label => 'Office'}] , 
+        :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] , 
+      )
+      person.should.be.new_record
+    end
+  end
 end

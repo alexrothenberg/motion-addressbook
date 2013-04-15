@@ -142,8 +142,12 @@ AddressBook::Person.find_or_new_by_email('alex@example.com')
 ```ruby
 AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :email => [{ :value => 'alex@example.com', :label => 'Home'}], , :phones => [{ :value => '9920149993', :label => 'Mobile'}])
 # => #<AddressBook::Person:0xe4e3a80 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0xe4bbef0>>
-```
 
+# Multiple emails/phones ex.
+
+AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :emails => ["a@mail.com", "b@gmail.com", "c@gmail.com", {:value => 'ashish@gmail.com', :label => 'Personal'} ], :phones => ['1234','2345','4567'])
+=> #<AddressBook::Person:0x9ce23b0 @address_book=#<__NSCFType:0x9ce2660> @ab_person=#<__NSCFType:0x9ce2450> @attributes=nil>
+```
 ### Update existing contact
 
 ```ruby
