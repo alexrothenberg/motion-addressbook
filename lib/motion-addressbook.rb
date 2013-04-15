@@ -8,6 +8,8 @@ BW.require 'motion/address_book/addr_book.rb'
 BW.require 'motion/address_book/person.rb'
 BW.require 'motion/address_book/group.rb'
 BW.require 'motion/address_book/multi_valued.rb'
+BW.require 'motion/address_book/source.rb'
+
 BW.require 'motion/address_book/picker.rb' do
   file('motion/address_book/picker.rb').uses_framework('AddressBookUI')
 end

@@ -91,8 +91,10 @@ module AddressBook
     end
 
     def method_missing(name, *args)
-      if getter?(name)
-        get(name)
+      if attribute_name = getter?(name)
+        get(attribute_name)
+      # if getter?(name)
+      #   get(name)
       elsif attribute_name = setter?(name)
         set(attribute_name, args.first)
       else
@@ -118,14 +120,16 @@ module AddressBook
 
     def getter?(method_name)
       if self.class.is_attribute? method_name
-        true
+        method_name
+        # true
       else
-        attribute = method_name.split('_').last
-        if ['email', 'phone'].include?(attribute)
-          true
-        else
-          false
-        end
+        nil
+        # attribute = method_name.split('_').last
+        # if ['email', 'phone'].include?(attribute)
+        #   true
+        # else
+        #   false
+        # end
       end
     end
     def setter?(method_name)
@@ -302,8 +306,9 @@ module AddressBook
 
     def source
       s = ABPersonCopySource(ab_person)
+      Source.new(s)
       # fetching KABSourceNameProperty always seems to return NULL
-      ABRecordCopyValue(s, KABSourceTypeProperty)
+      # ABRecordCopyValue(s, KABSourceTypeProperty)
     end
 
     def linked_people
