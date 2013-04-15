@@ -368,6 +368,7 @@ module AddressBook
     end
 
     def set_multi_valued(field, values)
+      values = values.map { |value| ( (value.kind_of?String) ? {:value => value} : value)}
       if values && values.any?
         multi_field = MultiValued.new(:attributes => values)
         ABRecordSetValue(ab_person, field, multi_field.ab_multi_value, nil)
