@@ -1,4 +1,4 @@
-# Addressbook for RubyMotion
+# Addressbook for RubyMotion[![Build Status](https://secure.travis-ci.org/alexrothenberg/motion-addressbook.png)](http://travis-ci.org/alexrothenberg/motion-addressbook) [![Code Climate](https://codeclimate.com/github/alexrothenberg/motion-addressbook.png)](https://codeclimate.com/github/alexrothenberg/motion-addressbook) [![Gem Version](https://badge.fury.io/rb/motion-addressbook.png)](http://badge.fury.io/rb/motion-addressbook)
 
 A RubyMotion wrapper around the iOS Address Book framework for RubyMotion apps.
 
@@ -8,7 +8,14 @@ Apple's [Address Book Programming Guide for iOS](http://developer.apple.com/libr
 
 ## Installation
 
-Add this line to your application's Gemfile:
+### If you're using `bundler` (this is recommended):
+
+Add these lines to your application's `Rakefile`:
+
+    require 'bundler'
+    Bundler.require
+
+Add this line to your application's `Gemfile`:
 
     gem 'motion-addressbook'
 
@@ -16,8 +23,11 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
+### Manually without bundler
 
+Or install it yourself (remember to add the bubble-wrap dependency) as:
+
+    $ gem install bubble-wrap
     $ gem install motion-addressbook
 
 ## Usage
@@ -130,7 +140,7 @@ AddressBook::Person.find_or_new_by_email('alex@example.com')
 ### Create a new Contact and save in Contacts app
 
 ```ruby
-AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :email => 'alex@example.com')
+AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :email => [{ :value => 'alex@example.com', :label => 'Home'}], , :phones => [{ :value => '9920149993', :label => 'Mobile'}])
 # => #<AddressBook::Person:0xe4e3a80 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0xe4bbef0>>
 ```
 
