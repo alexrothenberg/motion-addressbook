@@ -43,5 +43,9 @@ module AddressBook
     def notify_changes(callback, context)
       ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
     end
+
+    def sources
+      ABAddressBookCopyArrayOfAllSources(ab).map {|s| ABRecordCopyValue(s, KABSourceTypeProperty)}
+    end
   end
 end

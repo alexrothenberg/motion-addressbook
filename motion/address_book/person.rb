@@ -123,6 +123,8 @@ module AddressBook
         attribute = method_name.split('_').last
         if ['email', 'phone'].include?(attribute)
           true
+        else
+          false
         end
       end
     end
@@ -160,9 +162,9 @@ module AddressBook
     end
 
     def get(attribute_name)
-      label, attribute = attribute_name.split('_')
-      self.send("#{attribute}s").first_for(label)
-      # attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
+      # label, attribute = attribute_name.split('_')
+      # self.send("#{attribute}s").first_for(label)
+      attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
     end
 
     def set(attribute_name, value)
@@ -296,6 +298,20 @@ module AddressBook
     def replace(new_attributes)
       @attributes = new_attributes
       load_ab_person
+    end
+
+    def source
+      s = ABPersonCopySource(ab_person)
+      # fetching KABSourceNameProperty always seems to return NULL
+      ABRecordCopyValue(s, KABSourceTypeProperty)
+    end
+
+    def linked_people
+      recs = ABPersonCopyArrayOfAllLinkedPeople(ab_person).mutableCopy
+      recs.delete(ab_person) # LinkedPeople always includes self
+      recs.map do |linked_rec|
+        Person.new(nil, linked_rec, :address_book => address_book)
+      end
     end
 
     private
