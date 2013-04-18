@@ -13,3 +13,7 @@ BW.require 'motion/address_book/source.rb'
 BW.require 'motion/address_book/picker.rb' do
   file('motion/address_book/picker.rb').uses_framework('AddressBookUI')
 end
+
+Motion::Project::App.setup do |app|
+  app.vendor_project(File.expand_path(File.join(File.dirname(__FILE__), '../abhack')), :static)
+end

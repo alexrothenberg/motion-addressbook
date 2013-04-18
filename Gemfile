@@ -5,4 +5,3 @@ gem 'bubble-wrap'
 
 # Specify your gem's dependencies in motion-addressbook.gemspec
 gemspec
-
