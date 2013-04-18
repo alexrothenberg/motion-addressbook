@@ -6,3 +6,10 @@ Bundler.setup
 Bundler.require
 
 require 'bubble-wrap/test'
+
+Motion::Project::App.setup do |app|
+  # Use `rake config' to see complete project settings.
+  app.name = 'AddressBook'
+
+  app.vendor_project('abhack', :static)
+end

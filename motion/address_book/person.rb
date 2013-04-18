@@ -291,11 +291,11 @@ module AddressBook
 
     # 130326 DO NOT USE: RubyMotion blows up when fetching NSDate properties
     def modification_date
-      @modification_date ||= get_field(KABPersonModificationDateProperty)
+      ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
     end
 
     def creation_date
-      @creation_date = get_field(KABPersonCreationDateProperty)
+      ABHack.getDateProperty(KABPersonCreationDateProperty, from: ab_person)
     end
 
     # replace *all* properties of an existing Person with new values
@@ -331,7 +331,7 @@ module AddressBook
         KABPersonJobTitleProperty => :job_title,
         KABPersonDepartmentProperty => :department,
         KABPersonOrganizationProperty => :organization,
-        # KABPersonBirthdayProperty => :dob,
+        # KABPersonBirthdayProperty => :birthday,
         KABPersonNoteProperty => :note
       }
     end
@@ -392,6 +392,11 @@ module AddressBook
         if value = get_field(ab_property)
           @attributes[attr_key] = value
         end
+      end
+
+      # special case for date property
+      if value = ABHack.getDateProperty(KABPersonBirthdayProperty, from: ab_person)
+        @attributes[:birthday] = value
       end
 
       if organization?

@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+<signatures version='1.0'>
+<class name='ABHack'>
+<method class_method='true' selector='getDateProperty:from:'>
+<arg index='0' type='i' declared_type='ABPropertyID' name='property'/>
+<arg index='1' type='@' declared_type='ABRecordRef' name='ab_person'/>
+<retval type='@' declared_type='NSDate*'/>
+</method>
+</class>
+</signatures>
