@@ -1,7 +1,7 @@
 describe AddressBook::MultiValued do
   describe 'a new multi-value' do
     it 'should convert to localized labels' do
-      AddressBook::MultiValued::LabelMap.size.should.equal 10
+      AddressBook::MultiValued::LabelMap.size.should.equal 11
       AddressBook::MultiValued::LabelMap.each do |label, localized|
         mv = AddressBook::MultiValued.new(:attributes => [{:label => label, :value => 'test'}])
         ABMultiValueCopyLabelAtIndex(mv.ab_multi_value, 0).should.equal localized
@@ -94,6 +94,55 @@ describe AddressBook::MultiValued do
 
       it "should have new values" do
         @mv.count.should.equal 3
+      end
+    end
+  end
+
+  describe 'a date multi-value' do
+    before do
+      @attributes = [
+        {
+          :label => 'birthday',
+          :date => NSDate.dateWithNaturalLanguageString('April 5, 1962')
+        }, {
+          :label => 'anniversary',
+          :date => NSDate.dateWithNaturalLanguageString('September 22, 1994')
+        }, {
+          :label => 'death',
+          :date => NSDate.dateWithNaturalLanguageString('December 1, 2008')
+        }
+      ]
+      @mv = AddressBook::MultiValued.new(:attributes => @attributes)
+    end
+
+    it 'should be countable' do
+      @mv.count.should.equal 3
+    end
+
+    it 'should be reversible' do
+      abmv = @mv.ab_multi_value
+      mv2 = AddressBook::MultiValued.new(:ab_multi_value => abmv)
+      mv2.attributes.should.equal @attributes
+      # 3.should.equal 3
+    end
+
+    it 'should not explode' do
+      abmv = @mv.ab_multi_value
+      mv2 = AddressBook::MultiValued.new(:ab_multi_value => abmv)
+      dt = mv2.attributes[1][:date]
+      t = NSDate.dateWithNaturalLanguageString('September 22, 1994')
+      dt.should.equal t
+      dt.should.equal t
+      dt.should.equal t
+    end
+
+    describe 'after appending' do
+      before do
+        @mv << {:label => 'graduation', :date => NSDate.dateWithNaturalLanguageString('June 1, 1983')}
+      end
+
+      it "should have new values" do
+        @mv.count.should.equal 4
       end
     end
   end

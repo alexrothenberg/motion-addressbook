@@ -25,10 +25,13 @@ module AddressBook
     end
 
     def convert_multi_value_into_dictionary
+      # warn "MY PROPERTY TYPE IS #{ABMultiValueGetPropertyType(@ab_multi_value)}"
+
       count.times.map do |i|
         label = ABMultiValueCopyLabelAtIndex(@ab_multi_value, i)
         label_val = ABAddressBookCopyLocalizedLabel(label)
-        data = ab_record_to_dict(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
+        # data = ab_record_to_dict(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
+        data = ab_record_to_dict(i)
         data.merge(:label => label_val)
       end
     end
@@ -105,7 +108,8 @@ module AddressBook
       "work"     => KABWorkLabel              ,
       "home"     => KABHomeLabel              ,
       "other"    => KABOtherLabel             ,
-      "home page"=> KABPersonHomePageLabel
+      "home page"=> KABPersonHomePageLabel,
+      "anniversary"=> KABPersonAnniversaryLabel
     }
 
     def dict_to_ab_record(h)
@@ -115,17 +119,32 @@ module AddressBook
       h.any? ? h : nil
     end
 
-    def ab_record_to_dict(ab_record)
-      case ab_record
-      when String
-        {:value => ab_record}
-      when Time
-        {:date => ab_record}
-      else
+    def ab_record_to_dict(i)
+      case ABMultiValueGetPropertyType(@ab_multi_value)
+      when KABStringPropertyType
+        {:value => ABMultiValueCopyValueAtIndex(@ab_multi_value, i)}
+      when KABDateTimePropertyType
+        {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
+      when KABDictionaryPropertyType
+        ab_record = ABMultiValueCopyValueAtIndex(@ab_multi_value, i)
         PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
           dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
         end
+      else
+        raise "Trouble!"
       end
+
+      # case ab_record
+      # when String
+      #   {:value => ab_record}
+      # when Time
+      #   {:date => ab_record}
+      #   # {:date => ABHack.copyMe(ab_record)}
+      # else
+      #   PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
+      #     dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
+      #   end
+      # end
     end
 
     def <<(rec)

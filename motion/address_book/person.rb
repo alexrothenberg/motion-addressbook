@@ -345,7 +345,7 @@ module AddressBook
         KABPersonSocialProfileProperty => :social_profiles,
         KABPersonInstantMessageProperty => :im_profiles,
         KABPersonRelatedNamesProperty => :related_names,
-        # KABPersonDateProperty => :dates
+        KABPersonDateProperty => :dates
       }
     end
 

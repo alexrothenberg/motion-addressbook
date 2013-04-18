@@ -164,10 +164,11 @@ describe AddressBook::Person do
           { :label => 'home page', :value => "http://www.mysite.com/" },
           { :label => 'work', :value => 'http://dept.bigco.com/' },
           { :label => 'school', :value => 'http://state.edu/college' }
+        ],
+        :dates => [
+          { :label => 'anniversary', :date => NSDate.dateWithNaturalLanguageString('October 9, 2009') },
+          { :label => 'apotheosis', :date => NSDate.dateWithNaturalLanguageString('April 1, 2013') }
         ]
-        # :dates => [
-        #   { :label => 'anniversary', :date => Time.now }
-        # ]
       }
     end
 
