@@ -82,7 +82,7 @@ module AddressBook
         :job_title    => KABPersonJobTitleProperty,
         :department   => KABPersonDepartmentProperty,
         :organization => KABPersonOrganizationProperty,
-        # :dob    => KABPersonBirthdayProperty,
+        :birthday    => KABPersonBirthdayProperty,
         :note    => KABPersonNoteProperty
       }
     end
@@ -364,6 +364,13 @@ module AddressBook
         else
           remove_field(ab_property)
         end
+      end
+
+      # special case for date property
+      if value = attributes[:birthday]
+        set_field(KABPersonBirthdayProperty, value)
+      else
+        remove_field(KABPersonBirthdayProperty)
       end
 
       if attributes[:is_org]

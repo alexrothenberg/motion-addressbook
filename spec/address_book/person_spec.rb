@@ -147,6 +147,7 @@ describe AddressBook::Person do
         :department => 'Development',
         :organization => 'The Company',
         :note => 'some important guy',
+        :birthday => NSDate.dateWithNaturalLanguageString('July 1, 1982'),
         # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
         :phones => [
           {:label => 'mobile', :value => '123 456 7899'},
@@ -280,7 +281,7 @@ describe AddressBook::Person do
         end
 
         it 'should have scalar properties' do
-          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
+          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note, :birthday].each do |attr|
             @ab_person.send(attr).should.equal @attributes[attr]
           end
         end
@@ -387,7 +388,8 @@ describe AddressBook::Person do
         :last_name => 'Whorfin',
         :organization => 'Acme Inc.',
         :is_org => true,
-        :note => 'big important company'
+        :note => 'big important company',
+        :birthday => NSDate.dateWithNaturalLanguageString('August 17, 1947')
       )
     end
 
@@ -488,8 +490,8 @@ describe AddressBook::Person do
       person = @ab.new_person(
         :first_name => 'Ashish',
         :last_name => 'Upadhyay',
-        :email => [ { :value => 'a@mail.com' } , 'a@mail.com' , { :value => 'a@mail.com', :label => 'Office'}] , 
-        :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] , 
+        :email => [ { :value => 'a@mail.com' } , 'a@mail.com' , { :value => 'a@mail.com', :label => 'Office'}] ,
+        :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] ,
       )
       person.should.be.new_record
     end
