@@ -410,6 +410,7 @@ describe AddressBook::Person do
         @person.getter?('job_title'   ).should.be truthy
         @person.getter?('department'  ).should.be truthy
         @person.getter?('organization').should.be truthy
+        @person.getter?('birthday').should.be truthy
       end
       it 'should know what is not a getter' do
         @person.getter?('nonesense'        ).should.be falsey

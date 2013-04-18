@@ -75,15 +75,15 @@ module AddressBook
     def self.attribute_map
       {
         :first_name   => KABPersonFirstNameProperty,
-        :middle_name   => KABPersonMiddleNameProperty,
+        :middle_name  => KABPersonMiddleNameProperty,
         :last_name    => KABPersonLastNameProperty,
-        :suffix    => KABPersonSuffixProperty,
-        :nickname    => KABPersonNicknameProperty,
+        :suffix       => KABPersonSuffixProperty,
+        :nickname     => KABPersonNicknameProperty,
         :job_title    => KABPersonJobTitleProperty,
         :department   => KABPersonDepartmentProperty,
         :organization => KABPersonOrganizationProperty,
-        :birthday    => KABPersonBirthdayProperty,
-        :note    => KABPersonNoteProperty
+        :birthday     => KABPersonBirthdayProperty,
+        :note         => KABPersonNoteProperty
       }
     end
     def attribute_map
@@ -248,6 +248,10 @@ module AddressBook
       get_multi_valued(KABPersonRelatedNamesProperty)
     end
 
+    def dates
+      get_multi_valued(KABPersonDateProperty)
+    end
+
     def email; email_values.first; end
     def phone; phone_values.first; end
     def url; urls.attributes.first[:value]; end
@@ -289,8 +293,9 @@ module AddressBook
       get_field(KABPersonKindProperty) == KABPersonKindOrganization
     end
 
-    # 130326 DO NOT USE: RubyMotion blows up when fetching NSDate properties
     def modification_date
+      # workaround for RubyMotion bug: blows up when fetching NSDate properties
+      # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
       ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
     end
 
@@ -331,7 +336,7 @@ module AddressBook
         KABPersonJobTitleProperty => :job_title,
         KABPersonDepartmentProperty => :department,
         KABPersonOrganizationProperty => :organization,
-        # KABPersonBirthdayProperty => :birthday,
+        KABPersonBirthdayProperty => :birthday,
         KABPersonNoteProperty => :note
       }
     end
@@ -349,11 +354,6 @@ module AddressBook
       }
     end
 
-    # 130326 accessing NSDate properties currently blows up RubyMotion
-    def broken_properties
-      [KABPersonBirthdayProperty, KABPersonDateProperty]
-    end
-
     # instantiates ABPerson record from attributes
     def load_ab_person
       @attributes ||= {}
@@ -364,13 +364,6 @@ module AddressBook
         else
           remove_field(ab_property)
         end
-      end
-
-      # special case for date property
-      if value = attributes[:birthday]
-        set_field(KABPersonBirthdayProperty, value)
-      else
-        remove_field(KABPersonBirthdayProperty)
       end
 
       if attributes[:is_org]
@@ -401,11 +394,6 @@ module AddressBook
         end
       end
 
-      # special case for date property
-      if value = ABHack.getDateProperty(KABPersonBirthdayProperty, from: ab_person)
-        @attributes[:birthday] = value
-      end
-
       if organization?
         @attributes[:is_org] = true
       end
@@ -427,7 +415,13 @@ module AddressBook
       end
     end
     def get_field(field)
-      ABRecordCopyValue(ab_person, field)
+      if field == KABPersonBirthdayProperty
+        # special case: RubyMotion blows up on NSDate properties
+        # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
+        ABHack.getDateProperty(field, from: ab_person)
+      else
+        ABRecordCopyValue(ab_person, field)
+      end
     end
     def remove_field(field)
       ABRecordRemoveValue(ab_person, field, nil)

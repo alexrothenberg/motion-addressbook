@@ -25,12 +25,9 @@ module AddressBook
     end
 
     def convert_multi_value_into_dictionary
-      # warn "MY PROPERTY TYPE IS #{ABMultiValueGetPropertyType(@ab_multi_value)}"
-
       count.times.map do |i|
         label = ABMultiValueCopyLabelAtIndex(@ab_multi_value, i)
         label_val = ABAddressBookCopyLocalizedLabel(label)
-        # data = ab_record_to_dict(ABMultiValueCopyValueAtIndex(@ab_multi_value, i))
         data = ab_record_to_dict(i)
         data.merge(:label => label_val)
       end
@@ -69,12 +66,16 @@ module AddressBook
     end
 
     def multi_value_property_type
-      if attributes.find {|rec| rec[:value]}
-        KABMultiStringPropertyType
-      elsif attributes.find {|rec| rec[:date]}
-        KABMultiDateTimePropertyType
+      if @ab_multi_value
+        ABMultiValueGetPropertyType(@ab_multi_value)
       else
-        KABMultiDictionaryPropertyType
+        if attributes.find {|rec| rec[:value]}
+          KABMultiStringPropertyType
+        elsif attributes.find {|rec| rec[:date]}
+          KABMultiDateTimePropertyType
+        else
+          KABMultiDictionaryPropertyType
+        end
       end
     end
 
@@ -120,7 +121,7 @@ module AddressBook
     end
 
     def ab_record_to_dict(i)
-      case ABMultiValueGetPropertyType(@ab_multi_value)
+      case multi_value_property_type
       when KABStringPropertyType
         {:value => ABMultiValueCopyValueAtIndex(@ab_multi_value, i)}
       when KABDateTimePropertyType
@@ -131,20 +132,8 @@ module AddressBook
           dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
         end
       else
-        raise "Trouble!"
+        raise TypeError, "Unknown MultiValue property type"
       end
-
-      # case ab_record
-      # when String
-      #   {:value => ab_record}
-      # when Time
-      #   {:date => ab_record}
-      #   # {:date => ABHack.copyMe(ab_record)}
-      # else
-      #   PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
-      #     dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
-      #   end
-      # end
     end
 
     def <<(rec)
@@ -156,7 +145,7 @@ module AddressBook
       when KABMultiDictionaryPropertyType
         ABMultiValueAddValueAndLabel(ab_multi_value, dict_to_ab_record(rec), localized_label(rec[:label]), nil)
       else
-        raise "Unknown MultiValue property type"
+        raise TypeError, "Unknown MultiValue property type"
       end
 
       @attributes = convert_multi_value_into_dictionary
