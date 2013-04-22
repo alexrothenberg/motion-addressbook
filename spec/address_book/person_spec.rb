@@ -11,6 +11,9 @@ describe AddressBook::Person do
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
       end
+      it 'should have no mod date' do
+        @alex.modification_date.should.be.nil
+      end
       it 'should have initial values' do
         @alex.first_name.should == 'Alex'
         @alex.last_name.should  == 'Testy'
@@ -32,6 +35,9 @@ describe AddressBook::Person do
       end
       after do
         @alex.delete!
+      end
+      it 'should have a mod date' do
+        @alex.modification_date.should.not.be.nil
       end
       describe '.find_by_uid' do
         it 'should find match' do
@@ -141,6 +147,7 @@ describe AddressBook::Person do
         :department => 'Development',
         :organization => 'The Company',
         :note => 'some important guy',
+        :birthday => NSDate.dateWithNaturalLanguageString('July 1, 1982'),
         # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
         :phones => [
           {:label => 'mobile', :value => '123 456 7899'},
@@ -157,6 +164,10 @@ describe AddressBook::Person do
           { :label => 'home page', :value => "http://www.mysite.com/" },
           { :label => 'work', :value => 'http://dept.bigco.com/' },
           { :label => 'school', :value => 'http://state.edu/college' }
+        ],
+        :dates => [
+          { :label => 'anniversary', :date => NSDate.dateWithNaturalLanguageString('October 9, 2009') },
+          { :label => 'apotheosis', :date => NSDate.dateWithNaturalLanguageString('April 1, 2013') }
         ]
       }
     end
@@ -169,6 +180,7 @@ describe AddressBook::Person do
       it 'should not be existing' do
         @ab_person.should.be.new_record
         @ab_person.should.not.be.exists
+        @ab_person.modification_date.should.be.nil
       end
 
       it 'should be able to get each of the single value fields' do
@@ -243,6 +255,7 @@ describe AddressBook::Person do
 
       describe 'once saved' do
         before do
+          @before = Time.now
           @before_count = AddressBook.count
           @ab_person.save
         end
@@ -255,6 +268,11 @@ describe AddressBook::Person do
           @ab_person.should.be.exists
         end
 
+        # it 'should populate timestamps' do
+        #   @ab_person.modification_date.should.not.be.nil
+        #   should.satisfy {@ab_person.modification_date > @before}
+        # end
+
         it "should increment the count" do
           AddressBook.count.should.equal @before_count+1
         end
@@ -264,7 +282,7 @@ describe AddressBook::Person do
         end
 
         it 'should have scalar properties' do
-          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
+          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note, :birthday].each do |attr|
             @ab_person.send(attr).should.equal @attributes[attr]
           end
         end
@@ -371,7 +389,8 @@ describe AddressBook::Person do
         :last_name => 'Whorfin',
         :organization => 'Acme Inc.',
         :is_org => true,
-        :note => 'big important company'
+        :note => 'big important company',
+        :birthday => NSDate.dateWithNaturalLanguageString('August 17, 1947')
       )
     end
 
@@ -391,6 +410,7 @@ describe AddressBook::Person do
         @person.getter?('job_title'   ).should.be truthy
         @person.getter?('department'  ).should.be truthy
         @person.getter?('organization').should.be truthy
+        @person.getter?('birthday').should.be truthy
       end
       it 'should know what is not a getter' do
         @person.getter?('nonesense'        ).should.be falsey
@@ -472,8 +492,8 @@ describe AddressBook::Person do
       person = @ab.new_person(
         :first_name => 'Ashish',
         :last_name => 'Upadhyay',
-        :email => [ { :value => 'a@mail.com' } , 'a@mail.com' , { :value => 'a@mail.com', :label => 'Office'}] , 
-        :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] , 
+        :email => [ { :value => 'a@mail.com' } , 'a@mail.com' , { :value => 'a@mail.com', :label => 'Office'}] ,
+        :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] ,
       )
       person.should.be.new_record
     end

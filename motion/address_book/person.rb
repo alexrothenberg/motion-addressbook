@@ -75,15 +75,15 @@ module AddressBook
     def self.attribute_map
       {
         :first_name   => KABPersonFirstNameProperty,
-        :middle_name   => KABPersonMiddleNameProperty,
+        :middle_name  => KABPersonMiddleNameProperty,
         :last_name    => KABPersonLastNameProperty,
-        :suffix    => KABPersonSuffixProperty,
-        :nickname    => KABPersonNicknameProperty,
+        :suffix       => KABPersonSuffixProperty,
+        :nickname     => KABPersonNicknameProperty,
         :job_title    => KABPersonJobTitleProperty,
         :department   => KABPersonDepartmentProperty,
         :organization => KABPersonOrganizationProperty,
-        # :dob    => KABPersonBirthdayProperty,
-        :note    => KABPersonNoteProperty
+        :birthday     => KABPersonBirthdayProperty,
+        :note         => KABPersonNoteProperty
       }
     end
     def attribute_map
@@ -93,6 +93,8 @@ module AddressBook
     def method_missing(name, *args)
       if attribute_name = getter?(name)
         get(attribute_name)
+      # if getter?(name)
+      #   get(name)
       elsif attribute_name = setter?(name)
         set(attribute_name, args.first)
       else
@@ -119,8 +121,15 @@ module AddressBook
     def getter?(method_name)
       if self.class.is_attribute? method_name
         method_name
+        # true
       else
         nil
+        # attribute = method_name.split('_').last
+        # if ['email', 'phone'].include?(attribute)
+        #   true
+        # else
+        #   false
+        # end
       end
     end
     def setter?(method_name)
@@ -157,6 +166,8 @@ module AddressBook
     end
 
     def get(attribute_name)
+      # label, attribute = attribute_name.split('_')
+      # self.send("#{attribute}s").first_for(label)
       attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
     end
 
@@ -196,7 +207,9 @@ module AddressBook
     end
 
     def get_multi_valued(field)
-      MultiValued.new(:ab_multi_value => ABRecordCopyValue(ab_person, field))
+      if mv = ABRecordCopyValue(ab_person, field)
+        MultiValued.new(:ab_multi_value => mv)
+      end
     end
 
     def phones
@@ -233,6 +246,10 @@ module AddressBook
 
     def related_names
       get_multi_valued(KABPersonRelatedNamesProperty)
+    end
+
+    def dates
+      get_multi_valued(KABPersonDateProperty)
     end
 
     def email; email_values.first; end
@@ -276,18 +293,40 @@ module AddressBook
       get_field(KABPersonKindProperty) == KABPersonKindOrganization
     end
 
-    # must stash date values in instance variables or RubyMotion throws a malloc error
-    def creation_date
-      @creation_date = get_field(KABPersonCreationDateProperty)
+    def modification_date
+      # workaround for RubyMotion bug: blows up when fetching NSDate properties
+      # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
+      ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
     end
 
-    def modification_date
-      @modification_date = get_field(KABPersonModificationDateProperty)
+    def creation_date
+      ABHack.getDateProperty(KABPersonCreationDateProperty, from: ab_person)
+    end
+
+    # replace *all* properties of an existing Person with new values
+    def replace(new_attributes)
+      @attributes = new_attributes
+      load_ab_person
+    end
+
+    def source
+      s = ABPersonCopySource(ab_person)
+      Source.new(s)
+      # fetching KABSourceNameProperty always seems to return NULL
+      # ABRecordCopyValue(s, KABSourceTypeProperty)
+    end
+
+    def linked_people
+      recs = ABPersonCopyArrayOfAllLinkedPeople(ab_person).mutableCopy
+      recs.delete(ab_person) # LinkedPeople always includes self
+      recs.map do |linked_rec|
+        Person.new(nil, linked_rec, :address_book => address_book)
+      end
     end
 
     private
 
-    def single_value_property_map
+    def self.single_value_property_map
       {
         KABPersonFirstNameProperty => :first_name,
         KABPersonLastNameProperty => :last_name,
@@ -297,12 +336,12 @@ module AddressBook
         KABPersonJobTitleProperty => :job_title,
         KABPersonDepartmentProperty => :department,
         KABPersonOrganizationProperty => :organization,
-        # KABPersonBirthdayProperty => :dob,
+        KABPersonBirthdayProperty => :birthday,
         KABPersonNoteProperty => :note
       }
     end
 
-    def multi_value_property_map
+    def self.multi_value_property_map
       {
         KABPersonPhoneProperty => :phones,
         KABPersonEmailProperty => :emails,
@@ -310,7 +349,8 @@ module AddressBook
         KABPersonURLProperty => :urls,
         KABPersonSocialProfileProperty => :social_profiles,
         KABPersonInstantMessageProperty => :im_profiles,
-        KABPersonRelatedNamesProperty => :related_names
+        KABPersonRelatedNamesProperty => :related_names,
+        KABPersonDateProperty => :dates
       }
     end
 
@@ -318,9 +358,11 @@ module AddressBook
     def load_ab_person
       @attributes ||= {}
 
-      single_value_property_map.each do |ab_property, attr_key|
+      Person.single_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_field(ab_property, attributes[attr_key])
+        else
+          remove_field(ab_property)
         end
       end
 
@@ -330,16 +372,23 @@ module AddressBook
         set_field(KABPersonKindProperty, KABPersonKindPerson)
       end
 
-      multi_value_property_map.each do |ab_property, attr_key|
+      Person.multi_value_property_map.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
+        else
+          remove_field(ab_property)
         end
       end
+
+      ab_person
     end
 
+    # populate attributes from existing ABPerson
     def import_ab_person
       @attributes = {}
-      single_value_property_map.each do |ab_property, attr_key|
+      @modification_date = nil
+
+      Person.single_value_property_map.each do |ab_property, attr_key|
         if value = get_field(ab_property)
           @attributes[attr_key] = value
         end
@@ -349,9 +398,11 @@ module AddressBook
         @attributes[:is_org] = true
       end
 
-      multi_value_property_map.each do |ab_property, attr_key|
-        if (value = get_multi_valued(ab_property).attributes) && value.any?
-          @attributes[attr_key] = value
+      Person.multi_value_property_map.each do |ab_property, attr_key|
+        if value = get_multi_valued(ab_property)
+          if value.attributes.any?
+            @attributes[attr_key] = value.attributes
+          end
         end
       end
 
@@ -364,7 +415,16 @@ module AddressBook
       end
     end
     def get_field(field)
-      ABRecordCopyValue(ab_person, field)
+      if field == KABPersonBirthdayProperty
+        # special case: RubyMotion blows up on NSDate properties
+        # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
+        ABHack.getDateProperty(field, from: ab_person)
+      else
+        ABRecordCopyValue(ab_person, field)
+      end
+    end
+    def remove_field(field)
+      ABRecordRemoveValue(ab_person, field, nil)
     end
 
     def set_multi_valued(field, values)
