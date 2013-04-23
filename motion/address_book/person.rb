@@ -199,7 +199,8 @@ module AddressBook
     end
 
     def photo
-      ABPersonCopyImageData(ab_person)
+      abpd = ABPersonCopyImageData(ab_person)
+      UIImage.alloc.initWithData(abpd)
     end
 
     def photo=(photo_data)
