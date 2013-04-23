@@ -21,7 +21,16 @@ module AddressBook
       people = ab_people.map do |ab_person|
         new({}, ab_person, :address_book => ab)
       end
-      people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
+      puts [__FILE__, __LINE__, :all].inspect
+      people.sort! { |a,b|
+        puts [__FILE__, __LINE__, :all, :sorting].inspect
+        puts [__FILE__, __LINE__, :all, :sorting, a.first_name].inspect
+        puts [__FILE__, __LINE__, :all, :sorting, a.last_name].inspect
+        puts [__FILE__, __LINE__, :all, :sorting, b.first_name].inspect
+        puts [__FILE__, __LINE__, :all, :sorting, b.last_name].inspect
+
+        "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}"
+      }
       people
     end
 
@@ -92,6 +101,7 @@ module AddressBook
 
     def method_missing(name, *args)
       if attribute_name = getter?(name)
+        puts [__FILE__, __LINE__, :method_missing, name].inspect
         get(attribute_name)
       # if getter?(name)
       #   get(name)
@@ -166,6 +176,7 @@ module AddressBook
     end
 
     def get(attribute_name)
+      puts [__FILE__, __LINE__, :get, attribute_name, attribute_map[attribute_name]].inspect
       # label, attribute = attribute_name.split('_')
       # self.send("#{attribute}s").first_for(label)
       attributes[attribute_name.to_sym] ||= get_field(attribute_map[attribute_name])
@@ -386,26 +397,33 @@ module AddressBook
 
     # populate attributes from existing ABPerson
     def import_ab_person
+      puts [__FILE__, __LINE__, :import_ab_person].inspect
       @attributes = {}
       @modification_date = nil
 
+      puts [__FILE__, __LINE__, :import_ab_person, 'about to get single value properties'].inspect
       Person.single_value_property_map.each do |ab_property, attr_key|
+        puts [__FILE__, __LINE__, :import_ab_person, '   ', ab_property, attr_key].inspect
         if value = get_field(ab_property)
           @attributes[attr_key] = value
         end
       end
 
+      puts [__FILE__, __LINE__, :import_ab_person, 'got single value properties'].inspect
       if organization?
         @attributes[:is_org] = true
       end
 
+      puts [__FILE__, __LINE__, :import_ab_person, 'about to get multi value properties'].inspect
       Person.multi_value_property_map.each do |ab_property, attr_key|
+        puts [__FILE__, __LINE__, :import_ab_person, '   ', ab_property, attr_key].inspect
         if value = get_multi_valued(ab_property)
           if value.attributes.any?
             @attributes[attr_key] = value.attributes
           end
         end
       end
+      puts [__FILE__, __LINE__, :import_ab_person, 'got multi value properties'].inspect
 
       @attributes
     end
@@ -416,6 +434,7 @@ module AddressBook
       end
     end
     def get_field(field)
+      puts [__FILE__, __LINE__, :get_field, field].inspect
       if field == KABPersonBirthdayProperty
         # special case: RubyMotion blows up on NSDate properties
         # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
