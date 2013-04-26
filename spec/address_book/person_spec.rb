@@ -225,11 +225,26 @@ describe AddressBook::Person do
           @ab_person.organization.should.equal 'new organization'
         end
 
+        def empty_image(width, height)
+          UIGraphicsBeginImageContext(CGSizeMake(width, height) )
+          CGContextSetFillColorWithColor(UIGraphicsGetCurrentContext(), '#ffffff'.to_color)
+          image = UIGraphicsGetImageFromCurrentImageContext()
+          UIGraphicsEndImageContext()
+          image
+        end
+
         it 'should be able to set the photo' do
-          image = CIImage.emptyImage
-          data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
+          data = UIImagePNGRepresentation empty_image(1,1)
           @ab_person.photo = data
-          UIImagePNGRepresentation(@ab_person.photo).should.equal data
+          @ab_person.photo.should.not == nil
+          @ab_person.photo.should.equal data
+        end
+
+        it 'should be able to get the photo as an image' do
+          data = UIImagePNGRepresentation empty_image(1,1)
+          @ab_person.photo = data
+          @ab_person.photo_image.size
+          @ab_person.photo_image.size.should.equal CGSizeMake(1,1)
         end
       end
 

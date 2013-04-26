@@ -198,9 +198,12 @@ module AddressBook
       find_by(attribute_name, criteria) || new_by(attribute_name, criteria)
     end
 
+    def photo_image
+      UIImage.alloc.initWithData(photo)
+    end
+
     def photo
-      abpd = ABPersonCopyImageData(ab_person)
-      UIImage.alloc.initWithData(abpd)
+      ABPersonCopyImageData(ab_person)
     end
 
     def photo=(photo_data)
