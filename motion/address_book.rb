@@ -2,10 +2,14 @@ module AddressBook
   module_function
 
   def address_book
-    if UIDevice.currentDevice.systemVersion >= '6'
-      ios6_create
-    else
-      ios5_create
+    if App.osx?
+      ABAddressBook.addressBook
+    else # iOS
+      if Device.ios_version == '6.0'
+        ios6_create
+      else
+        ios5_create
+      end
     end
   end
 

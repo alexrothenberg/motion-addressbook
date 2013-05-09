@@ -81,37 +81,68 @@ module AddressBook
 
     # these are for mapping fields in a kABMultiDictionaryPropertyType record
     # to keys in a standard hash (NSDictionary)
-    PropertyMap = {
-      KABPersonAddressStreetKey => :street,
-      KABPersonAddressCityKey => :city,
-      KABPersonAddressStateKey => :state,
-      KABPersonAddressZIPKey => :postalcode,
-      KABPersonAddressCountryKey => :country,
-      KABPersonAddressCountryCodeKey => :country_code,
+    if App.osx?
+      PropertyMap = {
+        KABAddressStreetKey => :street,
+        KABAddressCityKey => :city,
+        KABAddressStateKey => :state,
+        KABAddressZIPKey => :postalcode,
+        KABAddressCountryKey => :country,
+        KABAddressCountryCodeKey => :country_code,
 
-      KABPersonSocialProfileURLKey => :url,
-      KABPersonSocialProfileServiceKey => :service,
-      KABPersonSocialProfileUsernameKey => :username,
-      KABPersonSocialProfileUserIdentifierKey => :userid,
+        KABSocialProfileURLKey => :url,
+        KABSocialProfileServiceKey => :service,
+        KABSocialProfileUsernameKey => :username,
+        KABSocialProfileUserIdentifierKey => :userid,
 
-      # these keys are identical to the SocialProfile keys above
-      KABPersonInstantMessageServiceKey => :service,
-      KABPersonInstantMessageUsernameKey => :username
-    }
+        # these keys are identical to the SocialProfile keys above
+        KABInstantMessageServiceKey => :service,
+        KABInstantMessageUsernameKey => :username
+      }
 
-    LabelMap = {
-      "mobile"   => KABPersonPhoneMobileLabel ,
-      "iphone"   => KABPersonPhoneIPhoneLabel ,
-      "main"     => KABPersonPhoneMainLabel   ,
-      "home_fax" => KABPersonPhoneHomeFAXLabel,
-      "work_fax" => KABPersonPhoneWorkFAXLabel,
-      "pager"    => KABPersonPhonePagerLabel  ,
-      "work"     => KABWorkLabel              ,
-      "home"     => KABHomeLabel              ,
-      "other"    => KABOtherLabel             ,
-      "home page"=> KABPersonHomePageLabel,
-      "anniversary"=> KABPersonAnniversaryLabel
-    }
+      LabelMap = {
+        "mobile"   => KABPhoneMobileLabel ,
+        "iphone"   => KABPhoneiPhoneLabel ,
+        "main"     => KABPhoneMainLabel   ,
+        "home_fax" => KABPhoneHomeFAXLabel,
+        "work_fax" => KABPhoneWorkFAXLabel,
+        "pager"    => KABPhonePagerLabel  ,
+        "work"     => KABWorkLabel              ,
+        "home"     => KABHomeLabel              ,
+        "other"    => KABOtherLabel             ,
+        "home page"=> KABHomePageLabel,
+        "anniversary"=> KABAnniversaryLabel
+      }
+    else
+      PropertyMap = {
+        KABPersonAddressStreetKey => :street,
+        KABPersonAddressCityKey => :city,
+        KABPersonAddressStateKey => :state,
+        KABPersonAddressZIPKey => :postalcode,
+        KABPersonAddressCountryKey => :country,
+        KABPersonAddressCountryCodeKey => :country_code,
+
+        KABPersonSocialProfileURLKey => :url,
+        KABPersonSocialProfileServiceKey => :service,
+        KABPersonSocialProfileUsernameKey => :username,
+        KABPersonSocialProfileUserIdentifierKey => :userid,
+
+        # these keys are identical to the SocialProfile keys above
+        KABPersonInstantMessageServiceKey => :service,
+        KABPersonInstantMessageUsernameKey => :username
+      }
+
+      LabelMap = {
+        "mobile"   => KABPersonPhoneMobileLabel ,
+        "iphone"   => KABPersonPhoneIPhoneLabel ,
+        "main"     => KABPersonPhoneMainLabel   ,
+        "home_fax" => KABPersonPhoneHomeFAXLabel,
+        "work_fax" => KABPersonPhoneWorkFAXLabel,
+        "pager"    => KABPersonPhonePagerLabel  ,
+        "home page"=> KABPersonHomePageLabel,
+        "anniversary"=> KABPersonAnniversaryLabel
+      }
+    end
 
     def dict_to_ab_record(h)
       h = PropertyMap.each_with_object({}) do |(ab_key, attr_key), ab_record|

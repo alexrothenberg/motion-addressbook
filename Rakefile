@@ -1,7 +1,10 @@
-#!/usr/bin/env rake
-$:.unshift("/Library/RubyMotion/lib")
-require 'motion/project/template/ios'
 require "bundler/gem_tasks"
+$:.unshift("/Library/RubyMotion/lib")
+if ENV['osx']
+  require 'motion/project/template/osx'
+else
+  require 'motion/project/template/ios'
+end
 Bundler.setup
 Bundler.require
 
