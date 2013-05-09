@@ -32,9 +32,10 @@ module AddressBook
       self
     end
 
-    def new?
+    def new_record?
       uid == KABRecordInvalidID
     end
+    alias :new? :new_record?
 
     def delete!
       unless new?
@@ -77,7 +78,7 @@ module AddressBook
     end
 
     def <<(person_or_group)
-      raise "Must save member before adding to group" if person_or_group.new?
+      raise ArgumentError, "Must save member before adding to group" if person_or_group.new?
       ABGroupAddMember(ab_group, person_or_group.ab_record, error)
     end
 
