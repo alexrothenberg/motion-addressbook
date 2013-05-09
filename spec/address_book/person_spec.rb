@@ -31,7 +31,8 @@ describe AddressBook::Person do
     describe 'existing' do
       before do
         @email = unique_email
-        @alex = @ab.create_person(new_alex(@email))
+        @origdata = new_alex(@email)
+        @alex = @ab.create_person(@origdata)
       end
       after do
         @alex.delete!
@@ -105,6 +106,24 @@ describe AddressBook::Person do
           @person = @ab.create_person({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
           @ab.people.size.should == (initial_people_count + 1)
           @person.delete!
+        end
+      end
+
+      describe ".replace" do
+        before do
+          warn "DOING REPLACE"
+          @newdata = {
+            :first_name => 'Alexander',
+            :last_name => "Testy",
+            :organization => "Acme, Inc.",
+            :emails => [{:label => 'work', :value => @origdata[:emails].first[:value]}]
+          }
+          @alex.replace(@newdata)
+          @alex.save
+        end
+
+        it "should have the new contents" do
+          @alex.attributes.should == @newdata
         end
       end
     end

@@ -23,6 +23,11 @@ describe AddressBook::Group do
     it "should not be new" do
       @group.should.not.be.new
     end
+
+    it "should not add unsaved person records" do
+      p = @ab.new_person({:first_name => 'Alice', :last_name => 'Artichoke'})
+      lambda {@group << p}.should.raise ArgumentError
+    end
   end
 
   describe 'a group with members' do
