@@ -532,4 +532,35 @@ describe AddressBook::Person do
       person.should.be.new_record
     end
   end
+
+  describe 'vcard' do
+    before do
+      @alex  = @ab.create_person(new_alex(unique_email))
+      @jason = @ab.create_person(new_alex('jason@example.com'))
+    end
+
+    describe '.vcard_for' do
+      it 'creates a vcard for a single person' do
+        alex_vcard = AddressBook::Person.vcard_for(@alex).to_s
+        alex_vcard.should.include? 'BEGIN:VCARD'
+        alex_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
+        alex_vcard.should.include? 'END:VCARD'
+      end
+      it 'creates a vcard for an array of people' do
+        alex_and_jason_vcard = AddressBook::Person.vcard_for([@alex, @jason]).to_s
+        alex_and_jason_vcard.should.include? 'BEGIN:VCARD'
+        alex_and_jason_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
+        alex_and_jason_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@jason.email}"
+        alex_and_jason_vcard.should.include? 'END:VCARD'
+      end
+    end
+    describe '#to_vcard' do
+      it 'knows how to create vcard for itself' do
+        alex_vcard = @alex.to_vcard.to_s
+        alex_vcard.should.include? 'BEGIN:VCARD'
+        alex_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
+        alex_vcard.should.include? 'END:VCARD'
+      end
+    end
+  end
 end

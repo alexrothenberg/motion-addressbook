@@ -328,6 +328,19 @@ module AddressBook
       end
     end
 
+    def to_vcard
+      self.class.vcard_for(self)
+    end
+
+    def self.vcard_for(people)
+      if people.respond_to? :map
+        ab_persons = people.map(&:ab_person)
+      else
+        ab_persons = [people.ab_person]
+      end
+      ABPersonCreateVCardRepresentationWithPeople(ab_persons)
+    end
+
     private
 
     def self.single_value_property_map
