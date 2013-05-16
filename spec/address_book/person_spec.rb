@@ -538,6 +538,10 @@ describe AddressBook::Person do
       @alex  = @ab.create_person(new_alex(unique_email))
       @jason = @ab.create_person(new_alex('jason@example.com'))
     end
+    after do
+      @jason.delete!
+      @alex.delete!
+    end
 
     describe '.vcard_for' do
       it 'creates a vcard for a single person' do
