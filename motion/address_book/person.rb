@@ -214,9 +214,12 @@ module AddressBook
       find_by(attribute_name, criteria) || new_by(attribute_name, criteria)
     end
 
+    def photo_image
+      UIImage.alloc.initWithData(photo)
+    end
+
     def photo
-      abpd = ABPersonCopyImageData(ab_person)
-      UIImage.alloc.initWithData(abpd)
+      ABPersonCopyImageData(ab_person)
     end
 
     def photo=(photo_data)
@@ -342,6 +345,19 @@ module AddressBook
       recs.map do |linked_rec|
         Person.new(nil, linked_rec, :address_book => address_book)
       end
+    end
+
+    def to_vcard
+      self.class.vcard_for(self)
+    end
+
+    def self.vcard_for(people)
+      if people.respond_to? :map
+        ab_persons = people.map(&:ab_person)
+      else
+        ab_persons = [people.ab_person]
+      end
+      ABPersonCreateVCardRepresentationWithPeople(ab_persons)
     end
 
     private

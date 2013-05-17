@@ -244,11 +244,26 @@ describe AddressBook::Person do
           @ab_person.organization.should.equal 'new organization'
         end
 
+        def empty_image(width, height)
+          UIGraphicsBeginImageContext(CGSizeMake(width, height) )
+          CGContextSetFillColorWithColor(UIGraphicsGetCurrentContext(), '#ffffff'.to_color)
+          image = UIGraphicsGetImageFromCurrentImageContext()
+          UIGraphicsEndImageContext()
+          image
+        end
+
         it 'should be able to set the photo' do
-          image = CIImage.emptyImage
-          data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
+          data = UIImagePNGRepresentation empty_image(1,1)
           @ab_person.photo = data
-          UIImagePNGRepresentation(@ab_person.photo).should.equal data
+          @ab_person.photo.should.not == nil
+          @ab_person.photo.should.equal data
+        end
+
+        it 'should be able to get the photo as an image' do
+          data = UIImagePNGRepresentation empty_image(1,1)
+          @ab_person.photo = data
+          @ab_person.photo_image.size
+          @ab_person.photo_image.size.should.equal CGSizeMake(1,1)
         end
       end
 
@@ -515,6 +530,41 @@ describe AddressBook::Person do
         :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] ,
       )
       person.should.be.new_record
+    end
+  end
+
+  describe 'vcard' do
+    before do
+      @alex  = @ab.create_person(new_alex(unique_email))
+      @jason = @ab.create_person(new_alex('jason@example.com'))
+    end
+    after do
+      @jason.delete!
+      @alex.delete!
+    end
+
+    describe '.vcard_for' do
+      it 'creates a vcard for a single person' do
+        alex_vcard = AddressBook::Person.vcard_for(@alex).to_s
+        alex_vcard.should.include? 'BEGIN:VCARD'
+        alex_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
+        alex_vcard.should.include? 'END:VCARD'
+      end
+      it 'creates a vcard for an array of people' do
+        alex_and_jason_vcard = AddressBook::Person.vcard_for([@alex, @jason]).to_s
+        alex_and_jason_vcard.should.include? 'BEGIN:VCARD'
+        alex_and_jason_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
+        alex_and_jason_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@jason.email}"
+        alex_and_jason_vcard.should.include? 'END:VCARD'
+      end
+    end
+    describe '#to_vcard' do
+      it 'knows how to create vcard for itself' do
+        alex_vcard = @alex.to_vcard.to_s
+        alex_vcard.should.include? 'BEGIN:VCARD'
+        alex_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
+        alex_vcard.should.include? 'END:VCARD'
+      end
     end
   end
 end
