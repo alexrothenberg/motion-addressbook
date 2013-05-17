@@ -2,13 +2,15 @@ module AddressBook
   class Person
     attr_reader :error
 
-    def initialize(attributes={}, existing_ab_person = nil, opts = {})
+    def initialize(target, opts = {})
       @address_book = opts[:address_book]
-      if existing_ab_person.nil?
+      if target.respond_to?(:fetch)
+        # data for a new Person, to be saved to the Address Book
         @ab_person = nil
-        @attributes = attributes
+        @attributes = target
       else
-        @ab_person = existing_ab_person
+        # existing Person, to be retrieved from the OSX Address Book
+        @ab_person = target
         @attributes = nil
       end
     end
@@ -162,13 +164,13 @@ module AddressBook
     def url; urls.attributes.first[:value]; end
     def address; addresses.attributes.first; end
 
-    def find_or_new
-      if new_record?
-        new_ab_person
-      else
-        existing_record
-      end
-    end
+    # def find_or_new
+    #   if new_record?
+    #     new_ab_person
+    #   else
+    #     existing_record
+    #   end
+    # end
 
     # has this record already been saved to the address book?
     def exists?
@@ -235,6 +237,11 @@ module AddressBook
     def local?
       !ab_person.isReadOnly
     end
+
+    def to_s
+      "#<#{self.class}:#{uid}: #{attributes}>"
+    end
+    alias :inspect :to_s
 
     # private
 

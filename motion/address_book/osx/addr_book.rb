@@ -10,7 +10,7 @@ module AddressBook
         people.select {|p| p.local?}
       else
         ab.people.map do |ab_person|
-          AddressBook::Person.new({}, ab_person, :address_book => ab)
+          AddressBook::Person.new(ab_person, :address_book => ab)
         end
       end
     end
@@ -18,16 +18,16 @@ module AddressBook
       people.count
     end
     def new_person(attributes)
-      Person.new(attributes, nil, :address_book => @ab)
+      Person.new(attributes, :address_book => @ab)
     end
     def create_person(attributes)
-      p = Person.new(attributes, nil, :address_book => @ab)
+      p = Person.new(attributes, :address_book => @ab)
       p.save
       p
     end
     def person(id)
       if ab_person = ab.recordForUniqueId(id)
-        Person.new({}, ab_person, :address_book => ab)
+        Person.new(ab_person, :address_book => ab)
       end
     end
     def changedSince(timestamp)
@@ -37,7 +37,7 @@ module AddressBook
     # get logged-in user's record
     def me
       if this_user = ab.me
-        Person.new({}, this_user, :address_book => ab)
+        Person.new(this_user, :address_book => ab)
       end
     end
 
