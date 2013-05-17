@@ -7,8 +7,8 @@ Gem::Specification.new do |gem|
 
   gem.authors       = ["Alex Rothenberg", "Jason May"]
   gem.email         = ["alex@alexrothenberg.com", "jmay@pobox.com"]
-  gem.description   = %q{A RubyMotion wrapper around the iOS Address Book framework}
-  gem.summary       = %q{A RubyMotion wrapper around the iOS Address Book framework}
+  gem.description   = %q{A RubyMotion wrapper around the iOS & OSX Address Book frameworks}
+  gem.summary       = %q{A RubyMotion wrapper around the iOS & OSX Address Book frameworks}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)

@@ -23,18 +23,9 @@ BubbleWrap.require_ios do
 end
 
 BubbleWrap.require_osx do
-  # BW.require 'motion/address_book/multi_value.rb'
-  BW.require 'motion/address_book/addr_book.rb'
-  BW.require 'motion/address_book/person.rb'
-  BW.require 'motion/address_book/group.rb'
-  BW.require 'motion/address_book/multi_valued.rb'
-  BW.require 'motion/address_book/source.rb'
-
-  Motion::Project::App.setup do |app|
-    app.vendor_project(File.expand_path(File.join(File.dirname(__FILE__), '../abhack')), :static)
-  end
-
-  BW.require 'motion/address_book/picker.rb' do
-    file('motion/address_book/picker.rb').uses_framework('AddressBookUI')
-  end
+  BW.require 'motion/address_book/osx/addr_book.rb'
+  BW.require 'motion/address_book/osx/person.rb'
+  BW.require 'motion/address_book/osx/group.rb'
+  BW.require 'motion/address_book/osx/multi_valued.rb'
+  BW.require 'motion/address_book/osx/source.rb'
 end
