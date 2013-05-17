@@ -13,24 +13,6 @@ module AddressBook
       end
     end
 
-    def self.all
-      ab = AddressBook.address_book
-      ab_people = ABAddressBookCopyArrayOfAllPeople(ab)
-      return [] if ab_people.nil?
-
-      people = ab_people.map do |ab_person|
-        new({}, ab_person, :address_book => ab)
-      end
-      people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
-      people
-    end
-
-    def self.create(attributes)
-      person = new(attributes)
-      person.save
-      person
-    end
-
     def save
       address_book.addRecord(ab_person)
       address_book.save
@@ -44,7 +26,7 @@ module AddressBook
 
     def ab_person
       if @ab_person.nil?
-        @ab_person = ABPersonCreate()
+        @ab_person = ABPerson.alloc.initWithAddressBook(address_book)
         load_ab_person
       end
       @ab_person
@@ -272,7 +254,7 @@ module AddressBook
 
     # has this record already been saved to the address book?
     def exists?
-      address_book.recordForUniqueId(uid)
+      uid && address_book.recordForUniqueId(uid)
     end
     def new_record?
       !exists?
@@ -280,7 +262,7 @@ module AddressBook
     alias :new? :new_record?
 
     def delete!
-      unless new_record?
+      if exists?
         address_book.removeRecord(ab_person)
         address_book.save
         @ab_person = nil
@@ -313,13 +295,6 @@ module AddressBook
       @attributes = new_attributes
       load_ab_person
     end
-
-    # def source
-    #   s = ABPersonCopySource(ab_person)
-    #   Source.new(s)
-    #   # fetching KABSourceNameProperty always seems to return NULL
-    #   # ABRecordCopyValue(s, KABSourceTypeProperty)
-    # end
 
     def linked_people
       recs = ab_person.linkedPeople
@@ -440,7 +415,7 @@ module AddressBook
       values = values.map { |value| ( (value.kind_of?String) ? {:value => value} : value)}
       if values && values.any?
         multi_field = MultiValued.new(:attributes => values)
-        ABRecordSetValue(ab_person, field, multi_field.ab_multi_value, nil)
+        set_field(field, multi_field.ab_multi_value)
       end
     end
 
