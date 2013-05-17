@@ -287,28 +287,30 @@ module AddressBook
       end
     end
 
-    def composite_name
-      ABRecordCopyCompositeName(ab_person)
-    end
+    # not supported on OSX
+    # def composite_name
+    #   ABRecordCopyCompositeName(ab_person)
+    # end
 
     def person?
-      (get_field(KABPersonFlags) & 01 == 0)
+      (get_field(KABPersonFlags) & KABShowAsCompany == 0)
     end
     def organization?
-      (get_field(KABPersonFlags) & 01 == 1)
+      (get_field(KABPersonFlags) & KABShowAsCompany == 1)
     end
 
     def modification_date
       # workaround for RubyMotion bug: blows up when fetching NSDate properties
       # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
       # still broken in RubyMotion 2.0
-      ABHack.getDateProperty(KABModificationDateProperty, from: ab_person)
+      # ABHack.getDateProperty(KABModificationDateProperty, from: ab_person)
       # when RubyMotion bug is fixed, this should just be
-      # get_field(KABModificationDateProperty)
+      get_field(KABModificationDateProperty)
     end
 
     def creation_date
-      ABHack.getDateProperty(KABCreationDateProperty, from: ab_person)
+      # ABHack.getDateProperty(KABCreationDateProperty, from: ab_person)
+      get_field(KABCreationDateProperty)
     end
 
     # replace *all* properties of an existing Person with new values
@@ -325,7 +327,7 @@ module AddressBook
     end
 
     def linked_people
-      recs = ABPersonCopyArrayOfAllLinkedPeople(ab_person).mutableCopy
+      recs = ab_person.linkedPeople
       recs.delete(ab_person) # LinkedPeople always includes self
       recs.map do |linked_rec|
         Person.new(nil, linked_rec, :address_book => address_book)
@@ -333,53 +335,40 @@ module AddressBook
     end
 
     def to_vcard
-      self.class.vcard_for(self)
-    end
-
-    def self.vcard_for(people)
-      if people.respond_to? :map
-        ab_persons = people.map(&:ab_person)
-      else
-        ab_persons = [people.ab_person]
-      end
-      ABPersonCreateVCardRepresentationWithPeople(ab_persons)
+      ab_person.vCardRepresentation
     end
 
     # private
 
-    def self.single_value_property_map
-      {
-        KABFirstNameProperty => :first_name,
-        KABLastNameProperty => :last_name,
-        KABMiddleNameProperty => :middle_name,
-        KABSuffixProperty => :suffix,
-        KABNicknameProperty => :nickname,
-        KABJobTitleProperty => :job_title,
-        KABDepartmentProperty => :department,
-        KABOrganizationProperty => :organization,
-        KABBirthdayProperty => :birthday,
-        KABNoteProperty => :note
-      }
-    end
+    SingleValuePropertyMap = {
+      KABFirstNameProperty => :first_name,
+      KABLastNameProperty => :last_name,
+      KABMiddleNameProperty => :middle_name,
+      KABSuffixProperty => :suffix,
+      KABNicknameProperty => :nickname,
+      KABJobTitleProperty => :job_title,
+      KABDepartmentProperty => :department,
+      KABOrganizationProperty => :organization,
+      KABBirthdayProperty => :birthday,
+      KABNoteProperty => :note
+    }
 
-    def self.multi_value_property_map
-      {
-        KABPhoneProperty => :phones,
-        KABEmailProperty => :emails,
-        KABAddressProperty => :addresses,
-        KABURLsProperty => :urls,
-        KABSocialProfileProperty => :social_profiles,
-        KABInstantMessageProperty => :im_profiles,
-        KABRelatedNamesProperty => :related_names,
-        KABOtherDatesProperty => :dates
-      }
-    end
+    MultiValuePropertyMap = {
+      KABPhoneProperty => :phones,
+      KABEmailProperty => :emails,
+      KABAddressProperty => :addresses,
+      KABURLsProperty => :urls,
+      KABSocialProfileProperty => :social_profiles,
+      KABInstantMessageProperty => :im_profiles,
+      KABRelatedNamesProperty => :related_names,
+      KABOtherDatesProperty => :dates
+    }
 
     # instantiates ABPerson record from attributes
     def load_ab_person
       @attributes ||= {}
 
-      Person.single_value_property_map.each do |ab_property, attr_key|
+      SingleValuePropertyMap.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_field(ab_property, attributes[attr_key])
         else
@@ -393,7 +382,7 @@ module AddressBook
         set_field(KABKindProperty, KABKindPerson)
       end
 
-      Person.multi_value_property_map.each do |ab_property, attr_key|
+      MultiValuePropertyMap.each do |ab_property, attr_key|
         if attributes[attr_key]
           set_multi_valued(ab_property, attributes[attr_key])
         else
@@ -409,7 +398,7 @@ module AddressBook
       @attributes = {}
       @modification_date = nil
 
-      Person.single_value_property_map.each do |ab_property, attr_key|
+      SingleValuePropertyMap.each do |ab_property, attr_key|
         if value = get_field(ab_property)
           @attributes[attr_key] = value
         end
@@ -419,7 +408,7 @@ module AddressBook
         @attributes[:is_org] = true
       end
 
-      Person.multi_value_property_map.each do |ab_property, attr_key|
+      MultiValuePropertyMap.each do |ab_property, attr_key|
         if value = get_multi_valued(ab_property)
           if value.attributes.any?
             @attributes[attr_key] = value.attributes

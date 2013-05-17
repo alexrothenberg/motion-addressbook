@@ -38,7 +38,7 @@ module AddressBook
     end
 
     def groups
-      ABAddressBookCopyArrayOfAllGroups(@ab).map do |ab_group|
+      ab.groups.map do |ab_group|
         AddressBook::Group.new(:ab_group => ab_group, :address_book => @ab)
       end
     end

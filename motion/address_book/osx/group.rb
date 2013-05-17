@@ -51,12 +51,16 @@ module AddressBook
     end
     alias :ab_record :ab_group
 
+    def get_field(field)
+      ab_group.valueForProperty(field)
+    end
+
     def uid
-      ABRecordGetRecordID(ab_group)
+      get_field(KABUIDProperty)
     end
 
     def name
-      ABRecordCopyValue(ab_group, KABGroupNameProperty)
+      get_field(KABGroupNameProperty)
     end
 
     def size
@@ -64,16 +68,16 @@ module AddressBook
     end
 
     def members
-      (ABGroupCopyArrayOfAllMembers(ab_group) || []).map do |ab_record|
-        case rectype = ABRecordGetRecordType(ab_record)
-        when KABPersonType
-          AddressBook::Person.new({}, ab_record, :address_book => address_book)
-        when KABGroupType
-          AddressBook::Group.new(:ab_group => ab_record, :address_book => address_book)
-        else
-          warn "Unrecognized record type #{rectype} in AB group #{name}"
-          nil
-        end
+      people + subgroups
+    end
+    def people
+      ab_group.members.map do |ab_person|
+        AddressBook::Person.new({}, ab_person, :address_book => address_book)
+      end
+    end
+    def subgroups
+      ab_group.subgroups.map do |subgroup|
+        AddressBook::Group.new(:ab_group => subgroup, :address_book => address_book)
       end
     end
 
