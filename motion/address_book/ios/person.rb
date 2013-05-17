@@ -345,6 +345,11 @@ module AddressBook
       ABPersonCreateVCardRepresentationWithPeople(ab_persons)
     end
 
+    def to_s
+      "#<#{self.class}:#{uid}: #{attributes}>"
+    end
+    alias :inspect :to_s
+
     private
 
     def self.single_value_property_map

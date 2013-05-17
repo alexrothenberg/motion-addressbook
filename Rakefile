@@ -8,7 +8,10 @@ end
 Bundler.setup
 Bundler.require
 
-# require 'bubble-wrap/test'
+unless ENV['osx']
+  # iOS needs an AppDelegate for REPL to launch; steal one from BW
+  require 'bubble-wrap/test'
+end
 
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
