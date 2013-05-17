@@ -37,6 +37,12 @@ module AddressBook
       get_field(KABUIDProperty)
     end
 
+    # this is NOT the same as the uid
+    # this may be assigned when iCloud syncing is enabled
+    def apple_uuid
+      get_field('com.apple.uuid')
+    end
+
 
     # def method_missing(name, *args)
     #   if attribute_name = getter?(name)

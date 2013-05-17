@@ -92,6 +92,18 @@ module AddressBook
       !ab_group.isReadOnly
     end
 
+    def apple_uuid
+      get_field('com.apple.uuid')
+    end
+    # regular groups have a value in the internal "com.apple.uuid" property
+    # groups with nil here appear to include
+    # * all-local-contacts source (group name is "card")
+    # * Facebook source (group name is "addressbook")
+    # I suspect that Exchange and DAV sources will show up here too.
+    def special?
+      apple_uuid.nil?
+    end
+
     private
 
     def convert_dict_to_ab
