@@ -52,7 +52,7 @@ module AddressBook
     alias :ab_record :ab_person
 
     def uid
-      ABRecordGetRecordID(ab_person)
+      get_field(KABUIDProperty)
     end
 
     def self.where(conditions)

@@ -26,10 +26,13 @@ module AddressBook
 
     def convert_multi_value_into_dictionary
       count.times.map do |i|
-        label = @ab_multi_value.labelAtIndex(i)
-        label_val = ABPerson.ABCopyLocalizedPropertyOrLabel(label)
         data = ab_record_to_dict(i)
-        data.merge(:label => label_val)
+        label = @ab_multi_value.labelAtIndex(i)
+        if label != ''
+          label_val = ABPerson.ABCopyLocalizedPropertyOrLabel(label)
+          data[:label] = label_val
+        end
+        data
       end
     end
 
