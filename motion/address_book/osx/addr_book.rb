@@ -3,7 +3,7 @@ module AddressBook
     attr_reader :ab
 
     def initialize
-      @ab = AddressBook.address_book
+      @ab = ABAddressBook.addressBook
     end
     def people(opts = {})
       if opts[:source]
@@ -11,13 +11,13 @@ module AddressBook
           AddressBook::Person.new({}, ab_person, :address_book => ab)
         end
       else
-        ABAddressBookCopyArrayOfAllPeople(ab).map do |ab_person|
+        ab.people.map do |ab_person|
           AddressBook::Person.new({}, ab_person, :address_book => ab)
         end
       end
     end
     def count
-      ABAddressBookGetPersonCount(@ab)
+      people.count
     end
     def new_person(attributes)
       Person.new(attributes, nil, :address_book => @ab)
@@ -28,7 +28,10 @@ module AddressBook
       p
     end
     def person(id)
-      (p = ABAddressBookGetPersonWithRecordID(ab, id)) && Person.new(nil, p, :address_book => ab)
+      query = ABPerson.searchElementForProperty(KABUIDProperty, label:nil, key:nil, value: id, comparison:KABEqual)
+      if rec = ab.recordsMatchingSearchElement(query).first
+        Person.new({}, rec, :address_book => ab)
+      end
     end
     def changedSince(timestamp)
       people.select {|p| p.modification_date > timestamp}

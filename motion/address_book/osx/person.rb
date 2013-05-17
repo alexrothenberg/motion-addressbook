@@ -73,33 +73,18 @@ module AddressBook
     end
 
     def self.attribute_map
-      if App.osx?
-        {
-          :first_name   => KABFirstNameProperty,
-          :middle_name  => KABMiddleNameProperty,
-          :last_name    => KABLastNameProperty,
-          :suffix       => KABSuffixProperty,
-          :nickname     => KABNicknameProperty,
-          :job_title    => KABJobTitleProperty,
-          :department   => KABDepartmentProperty,
-          :organization => KABOrganizationProperty,
-          :birthday     => KABBirthdayProperty,
-          :note         => KABNoteProperty
-        }
-      else
-        {
-          :first_name   => KABPersonFirstNameProperty,
-          :middle_name  => KABPersonMiddleNameProperty,
-          :last_name    => KABPersonLastNameProperty,
-          :suffix       => KABPersonSuffixProperty,
-          :nickname     => KABPersonNicknameProperty,
-          :job_title    => KABPersonJobTitleProperty,
-          :department   => KABPersonDepartmentProperty,
-          :organization => KABPersonOrganizationProperty,
-          :birthday     => KABPersonBirthdayProperty,
-          :note         => KABPersonNoteProperty
-        }
-      end
+      {
+        :first_name   => KABFirstNameProperty,
+        :middle_name  => KABMiddleNameProperty,
+        :last_name    => KABLastNameProperty,
+        :suffix       => KABSuffixProperty,
+        :nickname     => KABNicknameProperty,
+        :job_title    => KABJobTitleProperty,
+        :department   => KABDepartmentProperty,
+        :organization => KABOrganizationProperty,
+        :birthday     => KABBirthdayProperty,
+        :note         => KABNoteProperty
+      }
     end
 
     def attribute_map
@@ -227,13 +212,13 @@ module AddressBook
     end
 
     def get_multi_valued(field)
-      if mv = ABRecordCopyValue(ab_person, field)
+      if mv = get_field(field)
         MultiValued.new(:ab_multi_value => mv)
       end
     end
 
     def phones
-      get_multi_valued(KABPersonPhoneProperty)
+      get_multi_valued(KABPhoneProperty)
     end
 
     def phone_values
@@ -241,7 +226,7 @@ module AddressBook
     end
 
     def emails
-      get_multi_valued(KABPersonEmailProperty)
+      get_multi_valued(KABEmailProperty)
     end
 
     def email_values
@@ -249,27 +234,27 @@ module AddressBook
     end
 
     def addresses
-      get_multi_valued(KABPersonAddressProperty)
+      get_multi_valued(KABAddressProperty)
     end
 
     def urls
-      get_multi_valued(KABPersonURLProperty)
+      get_multi_valued(KABURLsProperty)
     end
 
     def social_profiles
-      get_multi_valued(KABPersonSocialProfileProperty)
+      get_multi_valued(KABSocialProfileProperty)
     end
 
     def im_profiles
-      get_multi_valued(KABPersonInstantMessageProperty)
+      get_multi_valued(KABInstantMessageProperty)
     end
 
     def related_names
-      get_multi_valued(KABPersonRelatedNamesProperty)
+      get_multi_valued(KABRelatedNamesProperty)
     end
 
     def dates
-      get_multi_valued(KABPersonDateProperty)
+      get_multi_valued(KABDateProperty)
     end
 
     def email; email_values.first; end
@@ -307,23 +292,23 @@ module AddressBook
     end
 
     def person?
-      get_field(KABPersonKindProperty) == KABPersonKindPerson
+      (get_field(KABPersonFlags) & 01 == 0)
     end
     def organization?
-      get_field(KABPersonKindProperty) == KABPersonKindOrganization
+      (get_field(KABPersonFlags) & 01 == 1)
     end
 
     def modification_date
       # workaround for RubyMotion bug: blows up when fetching NSDate properties
       # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
       # still broken in RubyMotion 2.0
-      ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
+      ABHack.getDateProperty(KABModificationDateProperty, from: ab_person)
       # when RubyMotion bug is fixed, this should just be
-      # get_field(KABPersonModificationDateProperty)
+      # get_field(KABModificationDateProperty)
     end
 
     def creation_date
-      ABHack.getDateProperty(KABPersonCreationDateProperty, from: ab_person)
+      ABHack.getDateProperty(KABCreationDateProperty, from: ab_person)
     end
 
     # replace *all* properties of an existing Person with new values
@@ -360,33 +345,33 @@ module AddressBook
       ABPersonCreateVCardRepresentationWithPeople(ab_persons)
     end
 
-    private
+    # private
 
     def self.single_value_property_map
       {
-        KABPersonFirstNameProperty => :first_name,
-        KABPersonLastNameProperty => :last_name,
-        KABPersonMiddleNameProperty => :middle_name,
-        KABPersonSuffixProperty => :suffix,
-        KABPersonNicknameProperty => :nickname,
-        KABPersonJobTitleProperty => :job_title,
-        KABPersonDepartmentProperty => :department,
-        KABPersonOrganizationProperty => :organization,
-        KABPersonBirthdayProperty => :birthday,
-        KABPersonNoteProperty => :note
+        KABFirstNameProperty => :first_name,
+        KABLastNameProperty => :last_name,
+        KABMiddleNameProperty => :middle_name,
+        KABSuffixProperty => :suffix,
+        KABNicknameProperty => :nickname,
+        KABJobTitleProperty => :job_title,
+        KABDepartmentProperty => :department,
+        KABOrganizationProperty => :organization,
+        KABBirthdayProperty => :birthday,
+        KABNoteProperty => :note
       }
     end
 
     def self.multi_value_property_map
       {
-        KABPersonPhoneProperty => :phones,
-        KABPersonEmailProperty => :emails,
-        KABPersonAddressProperty => :addresses,
-        KABPersonURLProperty => :urls,
-        KABPersonSocialProfileProperty => :social_profiles,
-        KABPersonInstantMessageProperty => :im_profiles,
-        KABPersonRelatedNamesProperty => :related_names,
-        KABPersonDateProperty => :dates
+        KABPhoneProperty => :phones,
+        KABEmailProperty => :emails,
+        KABAddressProperty => :addresses,
+        KABURLsProperty => :urls,
+        KABSocialProfileProperty => :social_profiles,
+        KABInstantMessageProperty => :im_profiles,
+        KABRelatedNamesProperty => :related_names,
+        KABOtherDatesProperty => :dates
       }
     end
 
@@ -403,9 +388,9 @@ module AddressBook
       end
 
       if attributes[:is_org]
-        set_field(KABPersonKindProperty, KABPersonKindOrganization)
+        set_field(KABKindProperty, KABKindOrganization)
       else
-        set_field(KABPersonKindProperty, KABPersonKindPerson)
+        set_field(KABKindProperty, KABKindPerson)
       end
 
       Person.multi_value_property_map.each do |ab_property, attr_key|
@@ -451,13 +436,7 @@ module AddressBook
       end
     end
     def get_field(field)
-      if field == KABPersonBirthdayProperty
-        # special case: RubyMotion blows up on NSDate properties
-        # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
-        ABHack.getDateProperty(field, from: ab_person)
-      else
-        ABRecordCopyValue(ab_person, field)
-      end
+      ab_person.valueForProperty(field)
     end
     def remove_field(field)
       ABRecordRemoveValue(ab_person, field, nil)
@@ -474,7 +453,7 @@ module AddressBook
     def existing_records
       potential_matches = ABAddressBookCopyPeopleWithName(address_book, attributes[:first_name])
       potential_matches.select do |record|
-        multi_field = MultiValue.new ABRecordCopyValue(record, KABPersonEmailProperty)
+        multi_field = MultiValue.new ABRecordCopyValue(record, KABEmailProperty)
         multi_field.include? attributes[:email]
       end
     end

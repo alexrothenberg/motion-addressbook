@@ -8,7 +8,7 @@ module AddressBook
       end
 
       if opts[:ab_multi_value]
-        @ab_multi_value = ABMultiValueCreateMutableCopy(opts[:ab_multi_value])
+        @ab_multi_value = opts[:ab_multi_value] #ABMultiValueCreateMutableCopy(opts[:ab_multi_value])
       else
         @attributes = opts[:attributes]
         raise ArgumentError, "Empty multi-value objects are not allowed" if @attributes.empty?
@@ -16,7 +16,7 @@ module AddressBook
     end
 
     def count
-      ABMultiValueGetCount(ab_multi_value)
+      ab_multi_value.count
     end
     alias :size :count
 
@@ -26,8 +26,8 @@ module AddressBook
 
     def convert_multi_value_into_dictionary
       count.times.map do |i|
-        label = ABMultiValueCopyLabelAtIndex(@ab_multi_value, i)
-        label_val = ABAddressBookCopyLocalizedLabel(label)
+        label = @ab_multi_value.labelAtIndex(i)
+        label_val = ABPerson.ABCopyLocalizedPropertyOrLabel(label)
         data = ab_record_to_dict(i)
         data.merge(:label => label_val)
       end
@@ -46,15 +46,15 @@ module AddressBook
       mv = ABMultiValueCreateMutable(mv_type)
 
       case mv_type
-      when KABMultiStringPropertyType
+      when KABMultiStringProperty
         @attributes.each do |rec|
           ABMultiValueAddValueAndLabel(mv, rec[:value], localized_label(rec[:label]), nil)
         end
-      when KABMultiDateTimePropertyType
+      when KABMultiDateProperty
         @attributes.each do |rec|
           ABMultiValueAddValueAndLabel(mv, rec[:date], localized_label(rec[:label]), nil)
         end
-      else # KABMultiDictionaryPropertyType
+      else # KABMultiDictionaryProperty
         @attributes.each do |rec|
           if value = dict_to_ab_record(rec)
             ABMultiValueAddValueAndLabel(mv, value, localized_label(rec[:label]), nil)
@@ -67,82 +67,51 @@ module AddressBook
 
     def multi_value_property_type
       if @ab_multi_value
-        ABMultiValueGetPropertyType(@ab_multi_value)
+        @ab_multi_value.propertyType
       else
         if attributes.find {|rec| rec[:value]}
-          KABMultiStringPropertyType
+          KABMultiStringProperty
         elsif attributes.find {|rec| rec[:date]}
-          KABMultiDateTimePropertyType
+          KABMultiDateProperty
         else
-          KABMultiDictionaryPropertyType
+          KABMultiDictionaryProperty
         end
       end
     end
 
     # these are for mapping fields in a kABMultiDictionaryPropertyType record
     # to keys in a standard hash (NSDictionary)
-    if App.osx?
-      PropertyMap = {
-        KABAddressStreetKey => :street,
-        KABAddressCityKey => :city,
-        KABAddressStateKey => :state,
-        KABAddressZIPKey => :postalcode,
-        KABAddressCountryKey => :country,
-        KABAddressCountryCodeKey => :country_code,
+    PropertyMap = {
+      KABAddressStreetKey => :street,
+      KABAddressCityKey => :city,
+      KABAddressStateKey => :state,
+      KABAddressZIPKey => :postalcode,
+      KABAddressCountryKey => :country,
+      KABAddressCountryCodeKey => :country_code,
 
-        KABSocialProfileURLKey => :url,
-        KABSocialProfileServiceKey => :service,
-        KABSocialProfileUsernameKey => :username,
-        KABSocialProfileUserIdentifierKey => :userid,
+      KABSocialProfileURLKey => :url,
+      KABSocialProfileServiceKey => :service,
+      KABSocialProfileUsernameKey => :username,
+      KABSocialProfileUserIdentifierKey => :userid,
 
-        # these keys are identical to the SocialProfile keys above
-        KABInstantMessageServiceKey => :service,
-        KABInstantMessageUsernameKey => :username
-      }
+      # these keys are identical to the SocialProfile keys above
+      KABInstantMessageServiceKey => :service,
+      KABInstantMessageUsernameKey => :username
+    }
 
-      LabelMap = {
-        "mobile"   => KABPhoneMobileLabel ,
-        "iphone"   => KABPhoneiPhoneLabel ,
-        "main"     => KABPhoneMainLabel   ,
-        "home_fax" => KABPhoneHomeFAXLabel,
-        "work_fax" => KABPhoneWorkFAXLabel,
-        "pager"    => KABPhonePagerLabel  ,
-        "work"     => KABWorkLabel              ,
-        "home"     => KABHomeLabel              ,
-        "other"    => KABOtherLabel             ,
-        "home page"=> KABHomePageLabel,
-        "anniversary"=> KABAnniversaryLabel
-      }
-    else
-      PropertyMap = {
-        KABPersonAddressStreetKey => :street,
-        KABPersonAddressCityKey => :city,
-        KABPersonAddressStateKey => :state,
-        KABPersonAddressZIPKey => :postalcode,
-        KABPersonAddressCountryKey => :country,
-        KABPersonAddressCountryCodeKey => :country_code,
-
-        KABPersonSocialProfileURLKey => :url,
-        KABPersonSocialProfileServiceKey => :service,
-        KABPersonSocialProfileUsernameKey => :username,
-        KABPersonSocialProfileUserIdentifierKey => :userid,
-
-        # these keys are identical to the SocialProfile keys above
-        KABPersonInstantMessageServiceKey => :service,
-        KABPersonInstantMessageUsernameKey => :username
-      }
-
-      LabelMap = {
-        "mobile"   => KABPersonPhoneMobileLabel ,
-        "iphone"   => KABPersonPhoneIPhoneLabel ,
-        "main"     => KABPersonPhoneMainLabel   ,
-        "home_fax" => KABPersonPhoneHomeFAXLabel,
-        "work_fax" => KABPersonPhoneWorkFAXLabel,
-        "pager"    => KABPersonPhonePagerLabel  ,
-        "home page"=> KABPersonHomePageLabel,
-        "anniversary"=> KABPersonAnniversaryLabel
-      }
-    end
+    LabelMap = {
+      "mobile"   => KABPhoneMobileLabel ,
+      "iphone"   => KABPhoneiPhoneLabel ,
+      "main"     => KABPhoneMainLabel   ,
+      "home_fax" => KABPhoneHomeFAXLabel,
+      "work_fax" => KABPhoneWorkFAXLabel,
+      "pager"    => KABPhonePagerLabel  ,
+      "work"     => KABWorkLabel        ,
+      "home"     => KABHomeLabel        ,
+      "other"    => KABOtherLabel       ,
+      "home page"=> KABHomePageLabel,
+      "anniversary"=> KABAnniversaryLabel
+    }
 
     def dict_to_ab_record(h)
       h = PropertyMap.each_with_object({}) do |(ab_key, attr_key), ab_record|
@@ -153,30 +122,32 @@ module AddressBook
 
     def ab_record_to_dict(i)
       case multi_value_property_type
-      when KABStringPropertyType
-        {:value => ABMultiValueCopyValueAtIndex(@ab_multi_value, i)}
-      when KABDateTimePropertyType
-        {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
-      when KABDictionaryPropertyType
-        ab_record = ABMultiValueCopyValueAtIndex(@ab_multi_value, i)
+      when KABMultiStringProperty
+        {:value => @ab_multi_value.valueAtIndex(i)}
+      when KABMultiDateProperty
+        # {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
+        {:date => @ab_multi_value.valueAtIndex(i)}
+        # {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
+      when KABMultiDictionaryProperty
+        ab_record = @ab_multi_value.valueAtIndex(i)
         PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
           dict[attr_key] = ab_record[ab_key] if ab_record[ab_key]
         end
       else
-        raise TypeError, "Unknown MultiValue property type"
+        raise TypeError, "Unknown MultiValue property type #{multi_value_property_type}"
       end
     end
 
     def <<(rec)
       case multi_value_property_type
-      when KABMultiStringPropertyType
+      when KABMultiStringProperty
         ABMultiValueAddValueAndLabel(ab_multi_value, rec[:value], localized_label(rec[:label]), nil)
-      when KABMultiDateTimePropertyType
+      when KABMultiDateTimeProperty
         ABMultiValueAddValueAndLabel(ab_multi_value, rec[:date], localized_label(rec[:label]), nil)
-      when KABMultiDictionaryPropertyType
+      when KABMultiDictionaryProperty
         ABMultiValueAddValueAndLabel(ab_multi_value, dict_to_ab_record(rec), localized_label(rec[:label]), nil)
       else
-        raise TypeError, "Unknown MultiValue property type"
+        raise TypeError, "Unknown MultiValue property type #{multi_value_property_type}"
       end
 
       @attributes = convert_multi_value_into_dictionary

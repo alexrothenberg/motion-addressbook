@@ -73,33 +73,18 @@ module AddressBook
     end
 
     def self.attribute_map
-      if App.osx?
-        {
-          :first_name   => KABFirstNameProperty,
-          :middle_name  => KABMiddleNameProperty,
-          :last_name    => KABLastNameProperty,
-          :suffix       => KABSuffixProperty,
-          :nickname     => KABNicknameProperty,
-          :job_title    => KABJobTitleProperty,
-          :department   => KABDepartmentProperty,
-          :organization => KABOrganizationProperty,
-          :birthday     => KABBirthdayProperty,
-          :note         => KABNoteProperty
-        }
-      else
-        {
-          :first_name   => KABPersonFirstNameProperty,
-          :middle_name  => KABPersonMiddleNameProperty,
-          :last_name    => KABPersonLastNameProperty,
-          :suffix       => KABPersonSuffixProperty,
-          :nickname     => KABPersonNicknameProperty,
-          :job_title    => KABPersonJobTitleProperty,
-          :department   => KABPersonDepartmentProperty,
-          :organization => KABPersonOrganizationProperty,
-          :birthday     => KABPersonBirthdayProperty,
-          :note         => KABPersonNoteProperty
-        }
-      end
+      {
+        :first_name   => KABPersonFirstNameProperty,
+        :middle_name  => KABPersonMiddleNameProperty,
+        :last_name    => KABPersonLastNameProperty,
+        :suffix       => KABPersonSuffixProperty,
+        :nickname     => KABPersonNicknameProperty,
+        :job_title    => KABPersonJobTitleProperty,
+        :department   => KABPersonDepartmentProperty,
+        :organization => KABPersonOrganizationProperty,
+        :birthday     => KABPersonBirthdayProperty,
+        :note         => KABPersonNoteProperty
+      }
     end
 
     def attribute_map
