@@ -300,7 +300,10 @@ module AddressBook
     def modification_date
       # workaround for RubyMotion bug: blows up when fetching NSDate properties
       # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
+      # still broken in RubyMotion 2.0
       ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
+      # when RubyMotion bug is fixed, this should just be
+      # get_field(KABPersonModificationDateProperty)
     end
 
     def creation_date
