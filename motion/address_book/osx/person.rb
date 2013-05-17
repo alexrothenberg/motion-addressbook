@@ -314,12 +314,12 @@ module AddressBook
       load_ab_person
     end
 
-    def source
-      s = ABPersonCopySource(ab_person)
-      Source.new(s)
-      # fetching KABSourceNameProperty always seems to return NULL
-      # ABRecordCopyValue(s, KABSourceTypeProperty)
-    end
+    # def source
+    #   s = ABPersonCopySource(ab_person)
+    #   Source.new(s)
+    #   # fetching KABSourceNameProperty always seems to return NULL
+    #   # ABRecordCopyValue(s, KABSourceTypeProperty)
+    # end
 
     def linked_people
       recs = ab_person.linkedPeople
@@ -331,6 +331,16 @@ module AddressBook
 
     def to_vcard
       ab_person.vCardRepresentation
+    end
+
+    def groups
+      ab_person.parentGroups.map do |ab_group|
+        AddressBook::Group.new(:ab_group => ab_group, :address_book => address_book)
+      end
+    end
+
+    def local?
+      !ab_person.isReadOnly
     end
 
     # private

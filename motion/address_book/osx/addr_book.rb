@@ -6,10 +6,8 @@ module AddressBook
       @ab = ABAddressBook.addressBook
     end
     def people(opts = {})
-      if opts[:source]
-        ABAddressBookCopyArrayOfAllPeopleInSource(ab, opts[:source].ab_source).map do |ab_person|
-          AddressBook::Person.new({}, ab_person, :address_book => ab)
-        end
+      if opts[:local]
+        people.select {|p| p.local?}
       else
         ab.people.map do |ab_person|
           AddressBook::Person.new({}, ab_person, :address_book => ab)
@@ -36,6 +34,13 @@ module AddressBook
       people.select {|p| p.modification_date > timestamp}
     end
 
+    # get logged-in user's record
+    def me
+      if this_user = ab.me
+        Person.new({}, this_user, :address_book => ab)
+      end
+    end
+
     def groups
       ab.groups.map do |ab_group|
         AddressBook::Group.new(:ab_group => ab_group, :address_book => @ab)
@@ -45,16 +50,18 @@ module AddressBook
       AddressBook::Group.new(:attributes => attributes, :address_book => @ab)
     end
     def group(id)
-      (g = ABAddressBookGetGroupWithRecordID(ab, id)) && Group.new(:ab_group => g, :address_book => @ab)
+      if ab_group = ab.recordForUniqueId(id)
+        Group.new(:ab_group => ab_group, :address_book => ab)
+      end
     end
 
     def notify_changes(callback, context)
       ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
     end
 
-    def sources
-      # ABAddressBookCopyArrayOfAllSources(ab).map {|s| ABRecordCopyValue(s, KABSourceTypeProperty)}
-      ABAddressBookCopyArrayOfAllSources(ab).map {|s| Source.new(s)}
-    end
+    # def sources
+    #   # ABAddressBookCopyArrayOfAllSources(ab).map {|s| ABRecordCopyValue(s, KABSourceTypeProperty)}
+    #   ABAddressBookCopyArrayOfAllSources(ab).map {|s| Source.new(s)}
+    # end
   end
 end

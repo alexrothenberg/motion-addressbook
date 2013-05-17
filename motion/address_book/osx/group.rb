@@ -25,15 +25,18 @@ module AddressBook
     end
 
     def save
-      ABAddressBookAddRecord(address_book, ab_group, error)
+      address_book.addRecord(ab_group)
       ABAddressBookSave(address_book, error)
       @attributes = nil
       @new_record = false
       self
     end
 
+    def exists?
+      address_book.recordForUniqueId(uid)
+    end
     def new_record?
-      uid == KABRecordInvalidID
+      !exists?
     end
     alias :new? :new_record?
 
@@ -84,6 +87,10 @@ module AddressBook
     def <<(person_or_group)
       raise ArgumentError, "Must save member before adding to group" if person_or_group.new?
       ABGroupAddMember(ab_group, person_or_group.ab_record, error)
+    end
+
+    def local?
+      !ab_group.isReadOnly
     end
 
     private
