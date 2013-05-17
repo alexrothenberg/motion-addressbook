@@ -37,116 +37,50 @@ module AddressBook
       get_field(KABUIDProperty)
     end
 
-    def self.where(conditions)
-      all.select do |person|
-        person.meets? conditions
-      end
-    end
 
-    def meets?(conditions)
-      conditions.keys.all? do |attribute|
-        case attribute
-        when :email
-          emails.attributes.map {|rec| rec[:value]}.any? {|v| v == conditions[attribute]}
-        else
-          send(attribute) == conditions[attribute]
-        end
-      end
-    end
+    # def method_missing(name, *args)
+    #   if attribute_name = getter?(name)
+    #     get(attribute_name)
+    #   # if getter?(name)
+    #   #   get(name)
+    #   elsif attribute_name = setter?(name)
+    #     set(attribute_name, args.first)
+    #   else
+    #     super
+    #   end
+    # end
+    # def self.method_missing(name, *args)
+    #   if attribute_name = all_finder?(name)
+    #     find_all_by(attribute_name, args.first)
+    #   elsif attribute_name = first_finder?(name)
+    #     find_by(attribute_name, args.first)
+    #   elsif attribute_name = finder_or_new?(name)
+    #     find_or_new_by(attribute_name, args.first)
+    #   else
+    #     super
+    #   end
+    # end
+    # def self.is_attribute?(attribute_name)
+    #   return false if attribute_name.nil?
+    #   attribute_map.include?(attribute_name.to_sym) || [:email, :phone_number].include?( attribute_name.to_sym)
+    # end
 
-    def self.attribute_map
-      {
-        :first_name   => KABFirstNameProperty,
-        :middle_name  => KABMiddleNameProperty,
-        :last_name    => KABLastNameProperty,
-        :suffix       => KABSuffixProperty,
-        :nickname     => KABNicknameProperty,
-        :job_title    => KABJobTitleProperty,
-        :department   => KABDepartmentProperty,
-        :organization => KABOrganizationProperty,
-        :birthday     => KABBirthdayProperty,
-        :note         => KABNoteProperty
-      }
-    end
-
-    def attribute_map
-      self.class.attribute_map
-    end
-
-    def method_missing(name, *args)
-      if attribute_name = getter?(name)
-        get(attribute_name)
-      # if getter?(name)
-      #   get(name)
-      elsif attribute_name = setter?(name)
-        set(attribute_name, args.first)
-      else
-        super
-      end
-    end
-
-    def self.method_missing(name, *args)
-      if attribute_name = all_finder?(name)
-        find_all_by(attribute_name, args.first)
-      elsif attribute_name = first_finder?(name)
-        find_by(attribute_name, args.first)
-      elsif attribute_name = finder_or_new?(name)
-        find_or_new_by(attribute_name, args.first)
-      else
-        super
-      end
-    end
-    def self.is_attribute?(attribute_name)
-      return false if attribute_name.nil?
-      attribute_map.include?(attribute_name.to_sym) || [:email, :phone_number].include?( attribute_name.to_sym)
-    end
-
-    def getter?(method_name)
-      if self.class.is_attribute? method_name
-        method_name
-        # true
-      else
-        nil
-        # attribute = method_name.split('_').last
-        # if ['email', 'phone'].include?(attribute)
-        #   true
-        # else
-        #   false
-        # end
-      end
-    end
-    def setter?(method_name)
-      method_name.to_s =~ /^(\w*)=$/
-      if self.class.is_attribute? $1
-        $1
-      else
-        nil
-      end
-    end
-    def self.all_finder?(method_name)
-      method_name.to_s =~ /^find_all_by_(\w*)$/
-      if is_attribute? $1
-        $1
-      else
-        nil
-      end
-    end
-    def self.first_finder?(method_name)
-      method_name.to_s =~ /^find_by_(\w*)$/
-      if is_attribute? $1
-        $1
-      else
-        nil
-      end
-    end
-    def self.finder_or_new?(method_name)
-      method_name.to_s =~ /^find_or_new_by_(\w*)$/
-      if is_attribute? $1
-        $1
-      else
-        nil
-      end
-    end
+    # def getter?(method_name)
+    #   if self.class.is_attribute? method_name
+    #     method_name
+    #     # true
+    #   else
+    #     nil
+    #   end
+    # end
+    # def setter?(method_name)
+    #   method_name.to_s =~ /^(\w*)=$/
+    #   if self.class.is_attribute? $1
+    #     $1
+    #   else
+    #     nil
+    #   end
+    # end
 
     def get(attribute_name)
       # label, attribute = attribute_name.split('_')
@@ -159,38 +93,16 @@ module AddressBook
       attributes[attribute_name.to_sym] = value
     end
 
-    def self.find_by_uid(criteria)
-      find_by :uid, criteria
-    end
-
-    def self.find_all_by(attribute_name, criteria)
-      where({attribute_name.to_sym => criteria})
-    end
-    def self.find_by(attribute_name, criteria)
-      find_all_by(attribute_name, criteria).first
-    end
-    def self.new_by(attribute_name, criteria)
-      case attr_sym = attribute_name.to_sym
-      when :email
-        new({:emails => [{:value => criteria}]})
-      else
-        new({attr_sym => criteria})
-      end
-    end
-    def self.find_or_new_by(attribute_name, criteria)
-      find_by(attribute_name, criteria) || new_by(attribute_name, criteria)
-    end
-
     def photo_image
       UIImage.alloc.initWithData(photo)
     end
 
     def photo
-      ABPersonCopyImageData(ab_person)
+      ab_person.imageData
     end
 
     def photo=(photo_data)
-      ABPersonSetImageData(ab_person, photo_data, error)
+      ab_person.setImageData(photo_data)
     end
 
     def get_multi_valued(field)
@@ -417,19 +329,6 @@ module AddressBook
         multi_field = MultiValued.new(:attributes => values)
         set_field(field, multi_field.ab_multi_value)
       end
-    end
-
-    def existing_records
-      potential_matches = ABAddressBookCopyPeopleWithName(address_book, attributes[:first_name])
-      potential_matches.select do |record|
-        multi_field = MultiValue.new ABRecordCopyValue(record, KABEmailProperty)
-        multi_field.include? attributes[:email]
-      end
-    end
-
-    def existing_record
-      # what if there are more than one match? email should be unique but ...
-      existing_records.first
     end
 
     def address_book

@@ -1,4 +1,4 @@
-# Wrapper for iOS ABGroup
+# Wrapper for OSX ABGroup
 #
 # * groups are saved to the database immediately upon new()
 # * members are added with <<
@@ -26,9 +26,8 @@ module AddressBook
 
     def save
       address_book.addRecord(ab_group)
-      ABAddressBookSave(address_book, error)
+      address_book.save
       @attributes = nil
-      @new_record = false
       self
     end
 
@@ -96,11 +95,11 @@ module AddressBook
     private
 
     def convert_dict_to_ab
-      @ab_group = ABGroupCreate()
+      @ab_group = ABGroup.alloc.initWithAddressBook(address_book)
 
       # groups only have a single regular attribute (name)
       if v = @attributes[:name]
-        ABRecordSetValue(@ab_group, KABGroupNameProperty, v, error)
+        ab_group.setValue(v, forProperty:KABGroupNameProperty)
       end
 
       save

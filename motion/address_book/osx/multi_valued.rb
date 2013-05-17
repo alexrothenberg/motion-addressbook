@@ -128,9 +128,7 @@ module AddressBook
       when KABMultiStringProperty
         {:value => @ab_multi_value.valueAtIndex(i)}
       when KABMultiDateProperty
-        # {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
         {:date => @ab_multi_value.valueAtIndex(i)}
-        # {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
       when KABMultiDictionaryProperty
         ab_record = @ab_multi_value.valueAtIndex(i)
         PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
