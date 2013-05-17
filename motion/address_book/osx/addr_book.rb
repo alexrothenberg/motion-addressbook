@@ -28,9 +28,8 @@ module AddressBook
       p
     end
     def person(id)
-      query = ABPerson.searchElementForProperty(KABUIDProperty, label:nil, key:nil, value: id, comparison:KABEqual)
-      if rec = ab.recordsMatchingSearchElement(query).first
-        Person.new({}, rec, :address_book => ab)
+      if ab_person = ab.recordForUniqueId(id)
+        Person.new({}, ab_person, :address_book => ab)
       end
     end
     def changedSince(timestamp)

@@ -39,8 +39,8 @@ module AddressBook
 
     def delete!
       unless new?
-        ABAddressBookRemoveRecord(address_book, ab_group, error)
-        ABAddressBookSave(address_book, error)
+        address_book.removeRecord(ab_group)
+        address_book.save
         @ab_group = nil
         self
       end

@@ -32,8 +32,8 @@ module AddressBook
     end
 
     def save
-      ABAddressBookAddRecord(address_book, ab_person, error)
-      ABAddressBookSave(address_book, error)
+      address_book.addRecord(ab_person)
+      address_book.save
       @attributes = nil # force refresh
       uid
     end
@@ -270,18 +270,19 @@ module AddressBook
       end
     end
 
+    # has this record already been saved to the address book?
+    def exists?
+      address_book.recordForUniqueId(uid)
+    end
     def new_record?
-      uid == KABRecordInvalidID
+      !exists?
     end
     alias :new? :new_record?
-    def exists?
-      !new_record?
-    end
 
     def delete!
       unless new_record?
-        ABAddressBookRemoveRecord(address_book, ab_person, error)
-        ABAddressBookSave(address_book, error)
+        address_book.removeRecord(ab_person)
+        address_book.save
         @ab_person = nil
         self
       end
@@ -300,16 +301,10 @@ module AddressBook
     end
 
     def modification_date
-      # workaround for RubyMotion bug: blows up when fetching NSDate properties
-      # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
-      # still broken in RubyMotion 2.0
-      # ABHack.getDateProperty(KABModificationDateProperty, from: ab_person)
-      # when RubyMotion bug is fixed, this should just be
       get_field(KABModificationDateProperty)
     end
 
     def creation_date
-      # ABHack.getDateProperty(KABCreationDateProperty, from: ab_person)
       get_field(KABCreationDateProperty)
     end
 
@@ -377,9 +372,9 @@ module AddressBook
       end
 
       if attributes[:is_org]
-        set_field(KABKindProperty, KABKindOrganization)
+        set_field(KABPersonFlags, KABShowAsCompany)
       else
-        set_field(KABKindProperty, KABKindPerson)
+        set_field(KABPersonFlags, KABShowAsPerson)
       end
 
       MultiValuePropertyMap.each do |ab_property, attr_key|
@@ -421,14 +416,14 @@ module AddressBook
 
     def set_field(field, value)
       if value
-        ABRecordSetValue(ab_person, field, value, error)
+        ab_person.setValue(value, forProperty:field)
       end
     end
     def get_field(field)
       ab_person.valueForProperty(field)
     end
     def remove_field(field)
-      ABRecordRemoveValue(ab_person, field, nil)
+      ab_person.removeValueForProperty(field)
     end
 
     def set_multi_valued(field, values)

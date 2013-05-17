@@ -46,21 +46,21 @@ module AddressBook
 
     def convert_dictionary_into_multi_value
       @mv_type = multi_value_property_type
-      mv = ABMultiValueCreateMutable(mv_type)
+      mv = ABMutableMultiValue.new
 
       case mv_type
       when KABMultiStringProperty
         @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, rec[:value], localized_label(rec[:label]), nil)
+          mv.addValue(rec[:value], withLabel: localized_label(rec[:label]))
         end
       when KABMultiDateProperty
         @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, rec[:date], localized_label(rec[:label]), nil)
+          mv.addValue(rec[:date], withLabel: localized_label(rec[:label]))
         end
       else # KABMultiDictionaryProperty
         @attributes.each do |rec|
           if value = dict_to_ab_record(rec)
-            ABMultiValueAddValueAndLabel(mv, value, localized_label(rec[:label]), nil)
+            mv.addValue(value, withLabel: localized_label(rec[:label]))
           end
         end
       end
