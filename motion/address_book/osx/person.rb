@@ -27,11 +27,7 @@ module AddressBook
     end
 
     def ab_person
-      if @ab_person.nil?
-        @ab_person = ABPerson.alloc.initWithAddressBook(address_book)
-        load_ab_person
-      end
-      @ab_person
+      @ab_person ||= initialize_ab_person
     end
     alias :ab_record :ab_person
 
@@ -45,18 +41,13 @@ module AddressBook
       get_field('com.apple.uuid')
     end
 
-
-    # def method_missing(name, *args)
-    #   if attribute_name = getter?(name)
-    #     get(attribute_name)
-    #   # if getter?(name)
-    #   #   get(name)
-    #   elsif attribute_name = setter?(name)
-    #     set(attribute_name, args.first)
-    #   else
-    #     super
-    #   end
-    # end
+    def method_missing(name, *args)
+      if property = ReverseSingleValuePropertyMap[name]
+        get_field(property)
+      else
+        super
+      end
+    end
     # def self.method_missing(name, *args)
     #   if attribute_name = all_finder?(name)
     #     find_all_by(attribute_name, args.first)
@@ -174,7 +165,7 @@ module AddressBook
 
     # has this record already been saved to the address book?
     def exists?
-      uid && address_book.recordForUniqueId(uid)
+      uid && ABAddressBook.sharedAddressBook.recordForUniqueId(uid)
     end
     def new_record?
       !exists?
@@ -257,6 +248,7 @@ module AddressBook
       KABBirthdayProperty => :birthday,
       KABNoteProperty => :note
     }
+    ReverseSingleValuePropertyMap = SingleValuePropertyMap.invert
 
     MultiValuePropertyMap = {
       KABPhoneProperty => :phones,
@@ -270,6 +262,12 @@ module AddressBook
     }
 
     # instantiates ABPerson record from attributes
+    def initialize_ab_person
+      @ab_person = ABPerson.alloc.initWithAddressBook(address_book)
+      load_ab_person
+      @ab_person
+    end
+
     def load_ab_person
       @attributes ||= {}
 
