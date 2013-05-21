@@ -14,7 +14,11 @@ module AddressBook
   end
 
   def count
-    ABAddressBookGetPersonCount(address_book)
+    if App.ios?
+      ABAddressBookGetPersonCount(address_book)
+    else
+      address_book.count
+    end
   end
 
   def ios6_create
