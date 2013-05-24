@@ -74,7 +74,7 @@ module AddressBook
     end
     def people
       ab_group.members.map do |ab_person|
-        AddressBook::Person.new({}, ab_person, :address_book => address_book)
+        AddressBook::Person.new(ab_person, :address_book => address_book)
       end
     end
     def subgroups

@@ -15,7 +15,7 @@ end
 
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
-  app.name = 'AddressBookTestSuite'
+  app.name = 'AddressBook'
 
   if Motion::Project::App.osx?
     app.specs_dir = "./spec/osx"
