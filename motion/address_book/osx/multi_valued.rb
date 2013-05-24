@@ -40,8 +40,11 @@ module AddressBook
       @ab_multi_value ||= convert_dictionary_into_multi_value
     end
 
+    # Attempt to convert the provided label to the OSX-standard global constant.
+    # If there's no match, then use the string as provided.
+    # nil values are not allowed on OSX, "" seems to be the stand-in for undefined.
     def localized_label(str)
-      LabelMap[str] || str
+      LabelMap[str] || str || ''
     end
 
     def convert_dictionary_into_multi_value
