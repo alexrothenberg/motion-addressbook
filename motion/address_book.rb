@@ -2,15 +2,23 @@ module AddressBook
   module_function
 
   def address_book
-    if UIDevice.currentDevice.systemVersion >= '6'
-      ios6_create
-    else
-      ios5_create
+    if App.osx?
+      ABAddressBook.addressBook
+    else # iOS
+      if Device.ios_version == '6.0'
+        ios6_create
+      else
+        ios5_create
+      end
     end
   end
 
   def count
-    ABAddressBookGetPersonCount(address_book)
+    if App.ios?
+      ABAddressBookGetPersonCount(address_book)
+    else
+      address_book.count
+    end
   end
 
   def ios6_create

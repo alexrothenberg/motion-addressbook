@@ -1,27 +1,18 @@
 describe AddressBook::Person do
-  before do
-    @ab = AddressBook::AddrBook.new
-  end
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do
         @data = new_alex
-        @alex = @ab.new_person(@data)
+        @alex = AddressBook::Person.new(@data)
       end
       it 'should create but not save in the address book' do
         @alex.should.be.new_record
-      end
-      it 'should have no mod date' do
-        @alex.modification_date.should.be.nil
+        @alex.should.not.exists?
       end
       it 'should have initial values' do
         @alex.first_name.should == 'Alex'
         @alex.last_name.should  == 'Testy'
         @alex.email_values.should == [@data[:emails][0][:value]]
-        @alex.email.should == @data[:emails][0][:value]
-      end
-      it "should round-trip attributes without loss" do
-        @alex.attributes.should.equal @data
       end
       it 'should have a composite name' do
         @alex.composite_name.should == 'Alex Testy'
@@ -31,23 +22,19 @@ describe AddressBook::Person do
     describe 'existing' do
       before do
         @email = unique_email
-        @origdata = new_alex(@email)
-        @alex = @ab.create_person(@origdata)
+        @alex = AddressBook::Person.create(new_alex(@email))
       end
       after do
         @alex.delete!
       end
-      it 'should have a mod date' do
-        @alex.modification_date.should.not.be.nil
-      end
       describe '.find_by_uid' do
         it 'should find match' do
-          alex = @ab.person(@alex.uid)
+          @alex.uid.should.not.be.nil
+          alex = AddressBook::Person.find_by_uid @alex.uid
           alex.uid.should == @alex.uid
           alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
-          alex.attributes.should.equal @alex.attributes
         end
       end
       describe '.find_all_by_email' do
@@ -55,6 +42,7 @@ describe AddressBook::Person do
           alexes = AddressBook::Person.find_all_by_email @email
           alexes.should.not.be.empty
           alexes.each do |alex|
+            alex.uid.should != nil
             alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -68,6 +56,7 @@ describe AddressBook::Person do
       describe '.find_by_email' do
         it 'should find match' do
           alex = AddressBook::Person.find_by_email @email
+          alex.uid.should.not.be.nil
           alex.email_values.should.include? @email
           alex.first_name.should == 'Alex'
           alex.last_name.should  == 'Testy'
@@ -82,6 +71,7 @@ describe AddressBook::Person do
           alexes = AddressBook::Person.where(:email => @email)
           alexes.should.not.be.empty
           alexes.each do |alex|
+            alex.uid.should != nil
             alex.email_values.should.include? @email
             alex.first_name.should == 'Alex'
             alex.last_name.should  == 'Testy'
@@ -95,35 +85,17 @@ describe AddressBook::Person do
 
       describe '.all' do
         it 'should have the person we created' do
-          all_names = @ab.people.map do |person|
+          all_names = AddressBook::Person.all.map do |person|
             [person.first_name, person.last_name]
           end
           all_names.should.include? [@alex.first_name, @alex.last_name]
         end
 
         it 'should get bigger when we create another' do
-          initial_people_count = @ab.people.size
-          @person = @ab.create_person({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
-          @ab.people.size.should == (initial_people_count + 1)
+          initial_people_count = AddressBook::Person.all.size
+          @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
+          AddressBook::Person.all.size.should == (initial_people_count + 1)
           @person.delete!
-        end
-      end
-
-      describe ".replace" do
-        before do
-          warn "DOING REPLACE"
-          @newdata = {
-            :first_name => 'Alexander',
-            :last_name => "Testy",
-            :organization => "Acme, Inc.",
-            :emails => [{:label => 'work', :value => @origdata[:emails].first[:value]}]
-          }
-          @alex.replace(@newdata)
-          @alex.save
-        end
-
-        it "should have the new contents" do
-          @alex.attributes.should == @newdata
         end
       end
     end
@@ -131,7 +103,7 @@ describe AddressBook::Person do
     describe '.find_or_new_by_XXX - new or existing' do
       before do
         @email = unique_email
-        @alex = @ab.create_person(new_alex(@email))
+        @alex = AddressBook::Person.create(new_alex(@email))
       end
       after do
         @alex.delete!
@@ -140,6 +112,7 @@ describe AddressBook::Person do
       it 'should find an existing person' do
         alex = AddressBook::Person.find_or_new_by_email(@email)
         alex.should.not.be.new_record
+        alex.uid.should != nil
         alex.first_name.should == 'Alex'
         alex.last_name.should  == 'Testy'
         alex.emails.attributes.map{|r| r[:value]}.should == [@email]
@@ -148,6 +121,7 @@ describe AddressBook::Person do
         never_before_used_email = unique_email
         new_person = AddressBook::Person.find_or_new_by_email(never_before_used_email)
         new_person.should.be.new_record
+        new_person.should.not.exists
         new_person.email_values.should == [never_before_used_email]
         new_person.first_name.should == nil
       end
@@ -166,7 +140,6 @@ describe AddressBook::Person do
         :department => 'Development',
         :organization => 'The Company',
         :note => 'some important guy',
-        :birthday => NSDate.dateWithNaturalLanguageString('July 1, 1982'),
         # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
         :phones => [
           {:label => 'mobile', :value => '123 456 7899'},
@@ -183,23 +156,18 @@ describe AddressBook::Person do
           { :label => 'home page', :value => "http://www.mysite.com/" },
           { :label => 'work', :value => 'http://dept.bigco.com/' },
           { :label => 'school', :value => 'http://state.edu/college' }
-        ],
-        :dates => [
-          { :label => 'anniversary', :date => NSDate.dateWithNaturalLanguageString('October 9, 2009') },
-          { :label => 'apotheosis', :date => NSDate.dateWithNaturalLanguageString('April 1, 2013') }
         ]
       }
     end
 
     describe 'a new person' do
       before do
-        @ab_person = @ab.new_person(@attributes)
+        @ab_person = AddressBook::Person.new(@attributes)
       end
 
       it 'should not be existing' do
         @ab_person.should.be.new_record
         @ab_person.should.not.be.exists
-        @ab_person.modification_date.should.be.nil
       end
 
       it 'should be able to get each of the single value fields' do
@@ -244,26 +212,11 @@ describe AddressBook::Person do
           @ab_person.organization.should.equal 'new organization'
         end
 
-        def empty_image(width, height)
-          UIGraphicsBeginImageContext(CGSizeMake(width, height) )
-          CGContextSetFillColorWithColor(UIGraphicsGetCurrentContext(), '#ffffff'.to_color)
-          image = UIGraphicsGetImageFromCurrentImageContext()
-          UIGraphicsEndImageContext()
-          image
-        end
-
         it 'should be able to set the photo' do
-          data = UIImagePNGRepresentation empty_image(1,1)
+          image = CIImage.emptyImage
+          data = UIImagePNGRepresentation(UIImage.imageWithCIImage image)
           @ab_person.photo = data
-          @ab_person.photo.should.not == nil
-          @ab_person.photo.should.equal data
-        end
-
-        it 'should be able to get the photo as an image' do
-          data = UIImagePNGRepresentation empty_image(1,1)
-          @ab_person.photo = data
-          @ab_person.photo_image.size
-          @ab_person.photo_image.size.should.equal CGSizeMake(1,1)
+          UIImagePNGRepresentation(@ab_person.photo).should.equal data
         end
       end
 
@@ -289,7 +242,6 @@ describe AddressBook::Person do
 
       describe 'once saved' do
         before do
-          @before = Time.now
           @before_count = AddressBook.count
           @ab_person.save
         end
@@ -302,22 +254,13 @@ describe AddressBook::Person do
           @ab_person.should.be.exists
         end
 
-        # it 'should populate timestamps' do
-        #   @ab_person.modification_date.should.not.be.nil
-        #   should.satisfy {@ab_person.modification_date > @before}
-        # end
-
         it "should increment the count" do
           AddressBook.count.should.equal @before_count+1
         end
 
-        it 'should round-trip all attributes without loss' do
-          @ab_person.attributes.should.equal @attributes
-        end
-
         it 'should have scalar properties' do
-          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note, :birthday].each do |attr|
-            @ab_person.send(attr).should.equal @attributes[attr]
+          [:first_name, :middle_name, :last_name, :job_title, :department, :organization, :note].each do |attr|
+            @ab_person.attributes[attr].should.equal @attributes[attr]
           end
         end
 
@@ -338,21 +281,22 @@ describe AddressBook::Person do
         end
       end
 
-      describe 'once deleted' do
+      describe 'can be deleted' do
         before do
           @ab_person.save
           @ab_person.delete!
         end
-        it 'should no longer exist' do
+        it 'after deletion it should no longer exist' do
           @ab_person.should.not.be.exists
-          # @ab_person.should.be.new_record
+          @ab_person.should.be.new_record
         end
       end
     end
 
     describe 'an existing person' do
       before do
-        @orig_ab_person = @ab.create_person(@attributes)
+        @orig_ab_person = AddressBook::Person.new(@attributes)
+        @orig_ab_person.save
         @ab_person = AddressBook::Person.find_or_new_by_email(@attributes[:emails][0][:value])
       end
       after do
@@ -393,7 +337,7 @@ describe AddressBook::Person do
           { :label => 'work' },
           { :label => 'work', :url => 'http://state.edu/college' }
         ]
-        @ab_person = @ab.create_person(@attributes)
+        @ab_person = AddressBook::Person.create(@attributes)
       end
       after do
         @ab_person.delete!
@@ -418,13 +362,12 @@ describe AddressBook::Person do
 
   describe "organization record" do
     before do
-      @person = @ab.new_person(
+      @person = AddressBook::Person.new(
         :first_name => 'John',
         :last_name => 'Whorfin',
         :organization => 'Acme Inc.',
         :is_org => true,
-        :note => 'big important company',
-        :birthday => NSDate.dateWithNaturalLanguageString('August 17, 1947')
+        :note => 'big important company'
       )
     end
 
@@ -435,7 +378,7 @@ describe AddressBook::Person do
 
   describe 'method missing magic' do
     before do
-      @person = @ab.new_person({})
+      @person = AddressBook::Person.new
     end
     describe 'getters' do
       it 'should have a getter for each attribute' do
@@ -444,7 +387,6 @@ describe AddressBook::Person do
         @person.getter?('job_title'   ).should.be truthy
         @person.getter?('department'  ).should.be truthy
         @person.getter?('organization').should.be truthy
-        @person.getter?('birthday').should.be truthy
       end
       it 'should know what is not a getter' do
         @person.getter?('nonesense'        ).should.be falsey
@@ -499,71 +441,6 @@ describe AddressBook::Person do
         AddressBook::Person.first_finder?('first_name'       ).should.be falsey
         AddressBook::Person.first_finder?('first_name='      ).should.be falsey
         AddressBook::Person.first_finder?('find_all_by_email').should.be falsey
-      end
-    end
-  end
-
-  describe "multiple emails/phone #'s handling" do
-    it "should accept multiple emails/phone #'s as array of strings for new records" do
-      person = @ab.new_person(
-        :first_name => 'Ashish',
-        :last_name => 'Upadhyay',
-        :email => ['a@mail.com','a@mail.com','a@mail.com'],
-        :phones => ['1212999222','1212999333','1212999444'],
-      )
-      person.should.be.new_record
-    end
-    it "should accept multiple emails/phone #'s as array of hashes for new records" do
-      person = @ab.new_person(
-        :first_name => 'Ashish',
-        :last_name => 'Upadhyay',
-        :email => [{ :value => 'a@mail.com' } , { :value => 'a@mail.com' } , { :value => 'a@mail.com' } ] ,
-        :phones => [{ :value => '1212999222' } , { :value => '1212999333' } , { :value => '1212999444' } ] ,
-      )
-      person.should.be.new_record
-    end
-    it "should accept multiple emails/phone #'s as array of combination of strings or hashes for new records" do
-      person = @ab.new_person(
-        :first_name => 'Ashish',
-        :last_name => 'Upadhyay',
-        :email => [ { :value => 'a@mail.com' } , 'a@mail.com' , { :value => 'a@mail.com', :label => 'Office'}] ,
-        :phones => [ '1212999222' ,  { :value => '1212999333', :label => 'Personal' } , { :value => '1212999444' } ] ,
-      )
-      person.should.be.new_record
-    end
-  end
-
-  describe 'vcard' do
-    before do
-      @alex  = @ab.create_person(new_alex(unique_email))
-      @jason = @ab.create_person(new_alex('jason@example.com'))
-    end
-    after do
-      @jason.delete!
-      @alex.delete!
-    end
-
-    describe '.vcard_for' do
-      it 'creates a vcard for a single person' do
-        alex_vcard = AddressBook::Person.vcard_for(@alex).to_s
-        alex_vcard.should.include? 'BEGIN:VCARD'
-        alex_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
-        alex_vcard.should.include? 'END:VCARD'
-      end
-      it 'creates a vcard for an array of people' do
-        alex_and_jason_vcard = AddressBook::Person.vcard_for([@alex, @jason]).to_s
-        alex_and_jason_vcard.should.include? 'BEGIN:VCARD'
-        alex_and_jason_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
-        alex_and_jason_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@jason.email}"
-        alex_and_jason_vcard.should.include? 'END:VCARD'
-      end
-    end
-    describe '#to_vcard' do
-      it 'knows how to create vcard for itself' do
-        alex_vcard = @alex.to_vcard.to_s
-        alex_vcard.should.include? 'BEGIN:VCARD'
-        alex_vcard.should.include? "EMAIL;type=INTERNET;type=HOME;type=pref:#{@alex.email}"
-        alex_vcard.should.include? 'END:VCARD'
       end
     end
   end

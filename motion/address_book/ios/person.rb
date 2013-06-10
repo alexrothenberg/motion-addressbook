@@ -86,6 +86,7 @@ module AddressBook
         :note         => KABPersonNoteProperty
       }
     end
+
     def attribute_map
       self.class.attribute_map
     end
@@ -343,6 +344,11 @@ module AddressBook
       end
       ABPersonCreateVCardRepresentationWithPeople(ab_persons)
     end
+
+    def to_s
+      "#<#{self.class}:#{uid}: #{attributes}>"
+    end
+    alias :inspect :to_s
 
     private
 
