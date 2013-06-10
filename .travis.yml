@@ -1,5 +1,4 @@
 language: objective-c
-before_install: rvm use 1.9.3
 notifications:
   email:
     recipients:
