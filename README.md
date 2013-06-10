@@ -2,9 +2,8 @@
 
 A RubyMotion wrapper around the iOS Address Book framework for RubyMotion apps.
 
-Apple's [Address Book Programming Guide for iOS](http://developer.apple.com/library/ios/#DOCUMENTATION/ContactData/Conceptual/AddressBookProgrammingGuideforiPhone/Introduction.html)
-
-[![Gem Version](https://badge.fury.io/rb/motion-addressbook.png)](http://badge.fury.io/rb/motion-addressbook)
+Apple's Address Book Programming Guide for [iOS](http://developer.apple.com/library/ios/#DOCUMENTATION/ContactData/Conceptual/AddressBookProgrammingGuideforiPhone/Introduction.html)
+or for [OSX](https://developer.apple.com/library/mac/#documentation/userexperience/Conceptual/AddressBook/AddressBook.html#//apple_ref/doc/uid/10000117i)
 
 ## Installation
 
