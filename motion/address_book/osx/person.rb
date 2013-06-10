@@ -240,6 +240,7 @@ module AddressBook
       KABFirstNameProperty => :first_name,
       KABLastNameProperty => :last_name,
       KABMiddleNameProperty => :middle_name,
+      KABPrefixProperty => :prefix,
       KABSuffixProperty => :suffix,
       KABNicknameProperty => :nickname,
       KABJobTitleProperty => :job_title,
