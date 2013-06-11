@@ -131,6 +131,7 @@ describe AddressBook::Person do
   describe 'save' do
     before do
       @attributes = {
+        :prefix => 'Mr.',
         :first_name=>'Alex',
         :middle_name=>'Q.',
         :last_name=>'Testy',
@@ -174,6 +175,7 @@ describe AddressBook::Person do
         @ab_person.first_name.should.equal   @attributes[:first_name  ]
         @ab_person.last_name.should.equal    @attributes[:last_name   ]
         @ab_person.middle_name.should.equal    @attributes[:middle_name   ]
+        @ab_person.prefix.should.equal       @attributes[:prefix   ]
         @ab_person.suffix.should.equal    @attributes[:suffix   ]
         @ab_person.nickname.should.equal    @attributes[:nickname   ]
         @ab_person.job_title.should.equal    @attributes[:job_title   ]
@@ -265,7 +267,7 @@ describe AddressBook::Person do
         end
 
         it 'should have a composite name' do
-          @ab_person.composite_name.should == 'Alex Q. Testy III'
+          @ab_person.composite_name.should == 'Mr. Alex Q. Testy III'
         end
 
         it 'should be able to count the emails' do
