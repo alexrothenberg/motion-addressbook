@@ -41,16 +41,16 @@ describe AddressBook::Person do
     end
 
     it 'should be able to get each of the single value fields' do
-      @the_person.first_name.should.equal   @alex_data[:first_name  ]
-      @the_person.last_name.should.equal    @alex_data[:last_name   ]
-      @the_person.middle_name.should.equal    @alex_data[:middle_name   ]
-      @the_person.suffix.should.equal       @alex_data[:prefix   ]
-      @the_person.suffix.should.equal    @alex_data[:suffix   ]
-      @the_person.nickname.should.equal    @alex_data[:nickname   ]
-      @the_person.job_title.should.equal    @alex_data[:job_title   ]
-      @the_person.department.should.equal   @alex_data[:department  ]
+      @the_person.first_name.should.equal   @alex_data[:first_name]
+      @the_person.last_name.should.equal    @alex_data[:last_name]
+      @the_person.middle_name.should.equal  @alex_data[:middle_name]
+      @the_person.prefix.should.equal       @alex_data[:prefix]
+      @the_person.suffix.should.equal       @alex_data[:suffix]
+      @the_person.nickname.should.equal     @alex_data[:nickname]
+      @the_person.job_title.should.equal    @alex_data[:job_title]
+      @the_person.department.should.equal   @alex_data[:department]
       @the_person.organization.should.equal @alex_data[:organization]
-      @the_person.note.should.equal @alex_data[:note]
+      @the_person.note.should.equal         @alex_data[:note]
       @the_person.should.be.person?
     end
 

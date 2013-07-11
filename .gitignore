@@ -13,3 +13,7 @@ abhack/build*
 
 .dat*.00*
 pkg
+.projectile
+doc
+
+TAGS
