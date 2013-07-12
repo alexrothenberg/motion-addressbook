@@ -41,13 +41,17 @@ module AddressBook
       get_field('com.apple.uuid')
     end
 
-    def method_missing(name, *args)
-      if property = ReverseSingleValuePropertyMap[name]
+    def method_missing(method_name, *args)
+      if property = ReverseSingleValuePropertyMap[method_name]
         get_field(property)
+      elsif property = ReverseSingleValuePropertyMap[method_name.gsub(/=$/, '').to_sym]
+        set_field(property, args.first)
+        @attributes = nil
       else
         super
       end
     end
+
     # def self.method_missing(name, *args)
     #   if attribute_name = all_finder?(name)
     #     find_all_by(attribute_name, args.first)
@@ -240,7 +244,7 @@ module AddressBook
       KABFirstNameProperty => :first_name,
       KABLastNameProperty => :last_name,
       KABMiddleNameProperty => :middle_name,
-      KABPrefixProperty => :prefix,
+      KABTitleProperty => :prefix,
       KABSuffixProperty => :suffix,
       KABNicknameProperty => :nickname,
       KABJobTitleProperty => :job_title,
