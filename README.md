@@ -87,6 +87,14 @@ AddressBook.pick { |person|
 }
 ```
 
+You can also specify the presenting controller:
+
+```ruby
+AddressBook.pick presenter: self do |person|
+  ...
+end
+```
+
 ### Instantiating a person object
 
 There are 3 ways to instantiate a person object
