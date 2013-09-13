@@ -13,9 +13,9 @@ BubbleWrap.require_ios do
   BW.require 'motion/address_book/ios/source.rb'
 
   # This is an iOS-specific RubyMotion bug workaround.
-  Motion::Project::App.setup do |app|
-    app.vendor_project(File.expand_path(File.join(File.dirname(__FILE__), '../abhack')), :static)
-  end
+  # Motion::Project::App.setup do |app|
+  #   app.vendor_project(File.expand_path(File.join(File.dirname(__FILE__), '../abhack')), :static)
+  # end
 
   BW.require 'motion/address_book/ios/picker.rb' do
     file('motion/address_book/ios/picker.rb').uses_framework('AddressBookUI')

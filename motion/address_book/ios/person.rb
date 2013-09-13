@@ -303,13 +303,14 @@ module AddressBook
       # workaround for RubyMotion bug: blows up when fetching NSDate properties
       # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
       # still broken in RubyMotion 2.0
-      ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
+      # ABHack.getDateProperty(KABPersonModificationDateProperty, from: ab_person)
       # when RubyMotion bug is fixed, this should just be
-      # get_field(KABPersonModificationDateProperty)
+      get_field(KABPersonModificationDateProperty)
     end
 
     def creation_date
-      ABHack.getDateProperty(KABPersonCreationDateProperty, from: ab_person)
+      # ABHack.getDateProperty(KABPersonCreationDateProperty, from: ab_person)
+      get_field(KABPersonCreationDateProperty)
     end
 
     # replace *all* properties of an existing Person with new values
@@ -443,13 +444,13 @@ module AddressBook
       end
     end
     def get_field(field)
-      if field == KABPersonBirthdayProperty
-        # special case: RubyMotion blows up on NSDate properties
-        # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
-        ABHack.getDateProperty(field, from: ab_person)
-      else
-        ABRecordCopyValue(ab_person, field)
-      end
+      # if field == KABPersonBirthdayProperty
+      #   # special case: RubyMotion blows up on NSDate properties
+      #   # see http://hipbyte.myjetbrains.com/youtrack/issue/RM-81
+      #   ABHack.getDateProperty(field, from: ab_person)
+      # else
+      ABRecordCopyValue(ab_person, field)
+      # end
     end
     def remove_field(field)
       ABRecordRemoveValue(ab_person, field, nil)
