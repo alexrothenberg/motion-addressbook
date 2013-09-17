@@ -8,9 +8,6 @@ Gemfile.lock
 vendor/Pods/Pods.xcodeproj/project.pbxproj
 vendor/Pods/build*
 
-abhack/*.bridgesupport
-abhack/build*
-
 .dat*.00*
 pkg
 .projectile

@@ -122,10 +122,10 @@ module AddressBook
 
     def ab_record_to_dict(i)
       case multi_value_property_type
+      when KABDateTimePropertyType
+        {:date => ABMultiValueCopyValueAtIndex(@ab_multi_value, i)}
       when KABStringPropertyType
         {:value => ABMultiValueCopyValueAtIndex(@ab_multi_value, i)}
-      when KABDateTimePropertyType
-        {:date => ABHack.getDateValueAtIndex(i, from: @ab_multi_value)}
       when KABDictionaryPropertyType
         ab_record = ABMultiValueCopyValueAtIndex(@ab_multi_value, i)
         PropertyMap.each_with_object({}) do |(ab_key, attr_key), dict|
