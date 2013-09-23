@@ -5,10 +5,10 @@ module AddressBook
     if App.osx?
       ABAddressBook.addressBook
     else # iOS
-      if Device.ios_version == '6.0'
-        ios6_create
-      else
+      if Device.ios_version =~ /5/
         ios5_create
+      else
+        ios6_create
       end
     end
   end
@@ -23,8 +23,13 @@ module AddressBook
 
   def ios6_create
     error = nil
-    @address_book = ABAddressBookCreateWithOptions(nil, error)
-    request_authorization unless authorized?
+    if authorized?
+      @address_book = ABAddressBookCreateWithOptions(nil, error)
+    else
+      request_authorization do |rc|
+        NSLog "AddressBook: access was #{rc ? 'approved' : 'denied'}"
+      end
+    end
     @address_book
   end
 

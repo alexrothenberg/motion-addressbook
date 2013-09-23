@@ -5,6 +5,9 @@ module AddressBook
     def initialize
       @ab = AddressBook.address_book
     end
+    def authorized?
+      AddressBook.authorized?
+    end
     def people(opts = {})
       if opts[:source]
         ABAddressBookCopyArrayOfAllPeopleInSource(ab, opts[:source].ab_source).map do |ab_person|
@@ -32,6 +35,10 @@ module AddressBook
     end
     def changedSince(timestamp)
       people.select {|p| p.modification_date > timestamp}
+    end
+
+    def group_count
+      ABAddressBookGetGroupCount(@ab)
     end
 
     def groups
