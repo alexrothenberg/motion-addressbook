@@ -12,6 +12,11 @@ def protect_existing_address_book
   # iOS layer protects them, but shelling out is still allowed so we
   # can alter the world that way.
 
+  unless AddressBook.authorized?
+    warn "BLOCKING FOR AUTHORIZATION"
+    AddressBook.request_authorization
+  end
+
   warn "PROTECTING EXISTING ADDRESS BOOK IN SIMULATOR"
 
   `mv \"#{AB_PATH}\" "#{AB_PATH_BAK}"`
