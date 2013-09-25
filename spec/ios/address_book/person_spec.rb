@@ -474,10 +474,15 @@ describe AddressBook::Person do
     it "should sort on last name using OS sort" do
       @ab.people(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
     end
+    it "should support last-name sort in Person#all" do
+      AddressBook::Person.all(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
+    end
 
     it "should sort on first name using OS sort" do
-      # change OS sort order
       @ab.people(ordering: KABPersonSortByFirstName).map(&:uid).should.equal [@p3, @p1, @p5, @p2, @p4]
+    end
+    it "should support first-name sort in Person#all" do
+      AddressBook::Person.all(ordering: KABPersonSortByFirstName).map(&:uid).should.equal  [@p3, @p1, @p5, @p2, @p4]
     end
 
     it "should support a custom sort order" do

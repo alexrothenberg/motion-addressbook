@@ -13,17 +13,8 @@ module AddressBook
       end
     end
 
-    def self.all
-      ab = AddressBook.address_book
-      ab_people = ABAddressBookCopyArrayOfAllPeople(ab)
-      return [] if ab_people.nil?
-
-      o = ABPersonGetSortOrdering()
-      ab_people.sort! { |x, y| ABPersonComparePeopleByName(x, y, o)  }
-      people = ab_people.map do |ab_person|
-        new({}, ab_person, :address_book => ab)
-      end
-      people
+    def self.all(options = {})
+      AddressBook::AddrBook.new.people(options)
     end
 
     def self.create(attributes)
