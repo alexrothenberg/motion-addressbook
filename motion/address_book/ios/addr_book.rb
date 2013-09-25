@@ -8,16 +8,24 @@ module AddressBook
     def authorized?
       AddressBook.authorized?
     end
-    def people(opts = {})
-      if opts[:source]
-        ABAddressBookCopyArrayOfAllPeopleInSource(ab, opts[:source].ab_source).map do |ab_person|
-          AddressBook::Person.new({}, ab_person, :address_book => ab)
-        end
-      else
-        ABAddressBookCopyArrayOfAllPeople(ab).map do |ab_person|
-          AddressBook::Person.new({}, ab_person, :address_book => ab)
-        end
+    def people(opts = {}, &block)
+      ordered_list = ab_people(opts).map do |ab_person|
+        AddressBook::Person.new({}, ab_person, :address_book => ab)
       end
+      if block
+        ordered_list.sort_by { |p| block.call(p) }
+      else
+        ordered_list
+      end
+      # if opts[:source]
+      #   ABAddressBookCopyArrayOfAllPeopleInSource(ab, opts[:source].ab_source).map do |ab_person|
+      #     AddressBook::Person.new({}, ab_person, :address_book => ab)
+      #   end
+      # else
+      #   ABAddressBookCopyArrayOfAllPeople(ab).map do |ab_person|
+      #     AddressBook::Person.new({}, ab_person, :address_book => ab)
+      #   end
+      # end
     end
     def count
       ABAddressBookGetPersonCount(@ab)
@@ -60,6 +68,22 @@ module AddressBook
     def sources
       # ABAddressBookCopyArrayOfAllSources(ab).map {|s| ABRecordCopyValue(s, KABSourceTypeProperty)}
       ABAddressBookCopyArrayOfAllSources(ab).map {|s| Source.new(s)}
+    end
+
+    private
+
+    def ab_people(opts = {})
+      ab_source = opts[:source]
+      ordering = opts.fetch(:ordering) { ABPersonGetSortOrdering() }
+
+      ab_people = if ab_source
+                    ABAddressBookCopyArrayOfAllPeopleInSource(ab, ab_source)
+                  else
+                    ABAddressBookCopyArrayOfAllPeople(ab)
+                  end
+
+      ab_people.sort! { |x, y| ABPersonComparePeopleByName(x, y, ordering)  }
+      ab_people
     end
   end
 end
