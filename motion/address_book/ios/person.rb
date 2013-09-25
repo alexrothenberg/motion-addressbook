@@ -18,10 +18,11 @@ module AddressBook
       ab_people = ABAddressBookCopyArrayOfAllPeople(ab)
       return [] if ab_people.nil?
 
+      o = ABPersonGetSortOrdering()
+      ab_people.sort! { |x, y| ABPersonComparePeopleByName(x, y, o)  }
       people = ab_people.map do |ab_person|
         new({}, ab_person, :address_book => ab)
       end
-      people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
       people
     end
 
