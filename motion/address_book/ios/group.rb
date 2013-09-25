@@ -82,6 +82,11 @@ module AddressBook
       ABGroupAddMember(ab_group, person_or_group.ab_record, error)
     end
 
+    def to_s
+      "#<#{self.class}:#{uid}:#{name}: #{size} members>"
+    end
+    alias :inspect :to_s
+
     private
 
     def convert_dict_to_ab

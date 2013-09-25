@@ -1,6 +1,10 @@
-# Addressbook for RubyMotion[![Build Status](https://secure.travis-ci.org/alexrothenberg/motion-addressbook.png)](http://travis-ci.org/alexrothenberg/motion-addressbook) [![Code Climate](https://codeclimate.com/github/alexrothenberg/motion-addressbook.png)](https://codeclimate.com/github/alexrothenberg/motion-addressbook) [![Gem Version](https://badge.fury.io/rb/motion-addressbook.png)](http://badge.fury.io/rb/motion-addressbook)
+# Addressbook for RubyMotion
 
-A RubyMotion wrapper around the iOS Address Book framework for RubyMotion apps.
+[![Build Status](https://secure.travis-ci.org/alexrothenberg/motion-addressbook.png)](http://travis-ci.org/alexrothenberg/motion-addressbook)
+[![Code Climate](https://codeclimate.com/github/alexrothenberg/motion-addressbook.png)](https://codeclimate.com/github/alexrothenberg/motion-addressbook)
+[![Gem Version](https://badge.fury.io/rb/motion-addressbook.png)](http://badge.fury.io/rb/motion-addressbook)
+
+A RubyMotion wrapper around the iOS and OSX Address Book frameworks for RubyMotion apps.
 
 Apple's Address Book Programming Guide for [iOS](http://developer.apple.com/library/ios/#DOCUMENTATION/ContactData/Conceptual/AddressBookProgrammingGuideforiPhone/Introduction.html)
 or for [OSX](https://developer.apple.com/library/mac/#documentation/userexperience/Conceptual/AddressBook/AddressBook.html#//apple_ref/doc/uid/10000117i)
@@ -33,26 +37,30 @@ Or install it yourself (remember to add the bubble-wrap dependency) as:
 
 ### Requesting access
 
-iOS 6 requires asking the user for permission before it allows an app to access the AddressBook.  There are 3 ways to interact with this
+iOS 6/7 requires that the user give permission before it allows an app to access the AddressBook.
 
 1 - Let the gem take care of it for you
 
 ```ruby
-people = AddressBook::Person.all
-# A dialog may be presented to the user before "people" was returned
+ab = AddressBook::AddrBook.new
+# ...do something else...
+people = ab.people
 ```
+
+The `people` method will raise an exception if called while
+authorization has not been granted.
 
 2 - Manually decide when to ask the user for authorization
 
 ```ruby
 # asking whether we are already authorized
 if AddressBook.authorized?
-  puts "This app is authorized?"
+  puts "This app is authorized!"
 else
-  puts "This app is not authorized?"
+  puts "This app is not authorized!"
 end
 
-# ask the user to authorize us
+# ask the user to authorize us (blocking)
 if AddressBook.request_authorization
   # do something now that the user has said "yes"
 else
@@ -75,6 +83,9 @@ end
 # do something here before the user has decided
 ```
 
+The iOS6 simulator does not demand AddressBook authorization. The iOS7
+simulator does.
+
 ### Showing the ABPeoplePicker
 
 ```ruby
@@ -87,72 +98,84 @@ AddressBook.pick { |person|
 }
 ```
 
-### Instantiating a person object
+### Working with Person objects
 
-There are 3 ways to instantiate a person object
-
-### To get a new person not yet connected to the iOS Address Book
+Get a list of existing people from the Address Book. On IOS, results
+are sorted using the sort order (First/Last or Last/First) chosen by
+the user in iOS Settings.
 
 ```ruby
-AddressBook::Person.new
-# => #<AddressBook::Person:0x8c67ca0 @attributes={:first_name=>nil, :last_name=>nil, :job_title=>nil, :department=>nil, :organization=>nil} @new_record=true @ab_person=#<__NSCFType:0x6d832e0>>
+ab = AddressBook::AddrBook.new
+ab.people
+=> [#<AddressBook::Person:3: {:first_name=>"John", :last_name=>"Appleseed", ...}>, ...]
 ```
 
-### To get a list of existing people from the iOS Address Book
+Create a new Person and save to the Address Book.
 
-Get all people with `.all`
+Note that Person records can take multiple values for email addresses, phone
+numbers, postal address, social profiles, and instant messaging
+profiles.
 
 ```ruby
-AddressBook::Person.all
-# => [#<AddressBook::Person:0x6d55e90 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0x6df8bf0>>,
-#     #<AddressBook::Person:0x6d550a0 @attributes={:first_name=>"Laurent", :last_name=>"Sansonetti", :job_title=>nil, :department=>nil, :organization=>"HipByte"} @ab_person=#<__NSCFType:0x6df97d0>>]
+ab.create_person(:first_name => 'Alex', :last_name => 'Rothenberg', :emails => [{ :value => 'alex@example.com', :label => 'Home'}], :phones => [{ :value => '9920149993', :label => 'Mobile'}])
+=> #<AddressBook::Person:7: {:first_name=>"Alex", :last_name=>"Rothenberg", ...}>
+```
+
+Construct a new blank Person but do not store it immediately in the Address Book.
+
+```ruby
+ab.new_person(:first_name => "Bob")
+=> #<AddressBook::Person:-1: {:first_name=>"Bob"}>
+ab.last_name = 'Brown'
+ab.save
+=> #<AddressBook::Person:9: {:first_name=>"Bob", :last_name=>"Brown"}>
 ```
 
 Get a list of all people matching one attribute with `.find_all_by_XXX`
 
 ```ruby
 AddressBook::Person.find_all_by_email('alex@example.com')
-# => [#<AddressBook::Person:0x6d55e90 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0x6df8bf0>>]
+=> [#<AddressBook::Person:14: {:first_name=>"Alex", :last_name=>"Rothenberg", ...}>]
 ```
 
-Get the first person matching one attribute with `find_by_XXX`
+Get the first person matching one attribute with `.find_by_XXX`
 
 ```ruby
 AddressBook::Person.find_by_email('alex@example.com')
-# => #<AddressBook::Person:0x6d55e90 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0x6df8bf0>>
+=> #<AddressBook::Person:14: {:first_name=>"Alex", :last_name=>"Rothenberg", ...}>]
 ```
 
 Get a list of all people matching several attributes with `.where`
 
 ```ruby
 AddressBook::Person.where(:email => 'alex@example.com', :first_name => 'Alex')
-# => [#<AddressBook::Person:0x6d55e90 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0x6df8bf0>>]
+=> [#<AddressBook::Person:14: {:first_name=>"Alex", :last_name=>"Rothenberg", ...}>]
 ```
 
-To look for an existing person or get a new one if none is found `find_or_new_by_XXX`
+Look for an existing person or get a new one if none is found `find_or_new_by_XXX`
 
 ```ruby
 AddressBook::Person.find_or_new_by_email('alex@example.com')
-# => #<AddressBook::Person:0xe4e3a80 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0xe4bbef0>>
+=> #<AddressBook::Person:17: {:first_name=>"Alex", :last_name=>"Rothenberg", ...}>]
 ```
 
-### Create a new Contact and save in Contacts app
-
-```ruby
-AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :email => [{ :value => 'alex@example.com', :label => 'Home'}], , :phones => [{ :value => '9920149993', :label => 'Mobile'}])
-# => #<AddressBook::Person:0xe4e3a80 @attributes={:first_name=>"Alex", :last_name=>"Rothenberg", :job_title=>nil, :department=>nil, :organization=>nil} @ab_person=#<__NSCFType:0xe4bbef0>>
-
-# Multiple emails/phones ex.
-
-AddressBook::Person.create(:first_name => 'Alex', :last_name => 'Rothenberg', :emails => ["a@mail.com", "b@gmail.com", "c@gmail.com", {:value => 'ashish@gmail.com', :label => 'Personal'} ], :phones => ['1234','2345','4567'])
-=> #<AddressBook::Person:0x9ce23b0 @address_book=#<__NSCFType:0x9ce2660> @ab_person=#<__NSCFType:0x9ce2450> @attributes=nil>
-```
-### Update existing contact
+### Update existing Person
 
 ```ruby
 alex = AddressBook::Person.find_by_email('alex@example.com')
 alex.job_title = 'RubyMotion Developer'
 alex.save
+```
+
+### Contact Groups
+
+```ruby
+ab.groups
+=> [#<AddressBook::Group:1:Friends: 1 members>, #<AddressBook::Group:2:Work: 0 members>]
+
+g = ab.groups.first
+g.members
+=> [#<AddressBook::Person:2: {:first_name=>"Daniel", :last_name=>"Higgins", ...}>]
 ```
 
 ## Contributing

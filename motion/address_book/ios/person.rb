@@ -27,7 +27,7 @@ module AddressBook
       ABAddressBookAddRecord(address_book, ab_person, error)
       ABAddressBookSave(address_book, error)
       @attributes = nil # force refresh
-      uid
+      self
     end
 
     def attributes
