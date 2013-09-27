@@ -2,16 +2,26 @@ module AddressBook
   class AddrBook
     attr_reader :ab
 
-    def initialize
-      if AddressBook.authorized?
-        @ab = AddressBook.address_book
+    def initialize(&block)
+      if authorized?
+        activate!
+        block.call(self) if block
       else
-        AddressBook.request_authorization { @ab = AddressBook.address_book }
+        @ab = NullAddrBook
+        AddressBook.request_authorization do |granted|
+          if granted
+            activate!
+            block.call(self) if block
+          end
+        end
       end
     end
 
+    def activate!
+      @ab = LiveAddrBook.new(AddressBook.address_book)
+    end
     def authorized?
-      AddressAddressBook.authorized?
+      AddressBook.authorized?
     end
 
     def auth!
@@ -19,10 +29,7 @@ module AddressBook
     end
 
     def people(opts = {}, &block)
-      auth!
-      ordered_list = ab_people(opts).map do |ab_person|
-        AddressBook::Person.new({}, ab_person, :address_book => ab)
-      end
+      ordered_list = ab_people(opts).map { |p| Person.new({}, p, address_book: ab.ab) }
       if block
         ordered_list.sort_by { |p| block.call(p) }
       else
@@ -30,11 +37,10 @@ module AddressBook
       end
     end
     def count
-      ABAddressBookGetPersonCount(@ab)
+      ab.person_count
     end
     def new_person(attributes)
-      auth!
-      Person.new(attributes, nil, :address_book => @ab)
+      Person.new(attributes, nil, :address_book => ab.ab)
     end
     def create_person(attributes)
       p = new_person(attributes)
@@ -42,35 +48,37 @@ module AddressBook
       p
     end
     def person(id)
-      auth!
-      (p = ABAddressBookGetPersonWithRecordID(ab, id)) && Person.new(nil, p, :address_book => ab)
+      (p = ab.person_with_id(id)) && Person.new(nil, p, :address_book => ab.ab)
     end
     def changedSince(timestamp)
       people.select {|p| p.modification_date > timestamp}
     end
 
     def groups
-      auth!
-      ABAddressBookCopyArrayOfAllGroups(@ab).map do |ab_group|
-        AddressBook::Group.new(:ab_group => ab_group, :address_book => @ab)
+      ab.all_groups.map do |ab_group|
+        AddressBook::Group.new(:ab_group => ab_group, :address_book => ab.ab)
       end
     end
     def group_count
-      ABAddressBookGetGroupCount(@ab)
+      ab.group_count
     end
     def new_group(attributes)
-      AddressBook::Group.new(:attributes => attributes, :address_book => @ab)
+      AddressBook::Group.new(:attributes => attributes, :address_book => ab.ab)
     end
     def group(id)
-      (g = ABAddressBookGetGroupWithRecordID(ab, id)) && Group.new(:ab_group => g, :address_book => @ab)
+      (g = ab.group_with_id(id)) && Group.new(:ab_group => g, :address_book => ab.ab)
     end
 
     def notify_changes(callback, context)
-      ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
+      ab.register_callback(callback, context)
     end
 
     def sources
-      ABAddressBookCopyArrayOfAllSources(ab).map {|s| Source.new(s)}
+      ab.sources.map {|s| Source.new(s)}
+    end
+
+    def inspect
+      "#<#{self.class}:#{"0x%0x" % object_id} #{ab.status}>"
     end
 
     private
@@ -80,13 +88,55 @@ module AddressBook
       ordering = opts.fetch(:ordering) { ABPersonGetSortOrdering() }
 
       ab_people = if ab_source
-                    ABAddressBookCopyArrayOfAllPeopleInSource(ab, ab_source)
+                    ab.all_people_in_source(ab_source)
                   else
-                    ABAddressBookCopyArrayOfAllPeople(ab)
+                    ab.all_people
                   end
 
       ab_people.sort! { |x, y| ABPersonComparePeopleByName(x, y, ordering)  }
       ab_people
+    end
+  end
+
+  class NullAddrBook
+    def self.status; "pending"; end
+    def self.method_missing(*args)
+      raise SecurityError, "iOS Address Book authorization is required."
+    end
+  end
+
+  class LiveAddrBook
+    attr_reader :ab
+    def initialize(ab)
+      @ab = ab
+    end
+    def status; "live"; end
+    def all_people
+      ABAddressBookCopyArrayOfAllPeople(ab)
+    end
+    def all_people_in_source(source)
+      ABAddressBookCopyArrayOfAllPeopleInSource(ab, source)
+    end
+    def person_with_id(id)
+      ABAddressBookGetPersonWithRecordID(ab, id)
+    end
+    def person_count
+      ABAddressBookGetPersonCount(ab)
+    end
+    def all_groups
+      ABAddressBookCopyArrayOfAllGroups(ab)
+    end
+    def group_count
+      ABAddressBookGetGroupCount(ab)
+    end
+    def group_with_id(id)
+      ABAddressBookGetGroupWithRecordID(ab, id)
+    end
+    def sources
+      ABAddressBookCopyArrayOfAllSources(ab)
+    end
+    def register_callback(callback, context)
+      ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
     end
   end
 end
