@@ -157,7 +157,11 @@ describe AddressBook::Person do
           { :label => 'home page', :value => "http://www.mysite.com/" },
           { :label => 'work', :value => 'http://dept.bigco.com/' },
           { :label => 'school', :value => 'http://state.edu/college' }
-        ]
+        ],
+        :social_profiles => [
+                             { service: 'FaceBook', username: 'testyman' },
+                             { service: 'twitter', username: 'testwit' }
+                            ]
       }
     end
 
@@ -240,6 +244,11 @@ describe AddressBook::Person do
       it 'should be able to count & inspect the URLs' do
         @ab_person.urls.count.should.equal 3
         @ab_person.urls.attributes.should.equal @attributes[:urls]
+      end
+
+      it 'should round-trip social profiles' do
+        @ab_person.social_profiles.count.should.equal 2
+        @ab_person.attributes[:social_profiles].should.equal @attributes[:social_profiles]
       end
 
       describe 'once saved' do

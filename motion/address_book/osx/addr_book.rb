@@ -56,7 +56,9 @@ module AddressBook
     end
 
     def notify_changes(callback, context)
-      ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
+      App.notification_center.observe KABDatabaseChangedExternallyNotification do |notification|
+        callback.call(context)
+      end
     end
 
     # def sources

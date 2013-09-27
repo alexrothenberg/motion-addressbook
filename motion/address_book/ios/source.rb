@@ -9,9 +9,9 @@ module AddressBook
     def type
       ABRecordCopyValue(ab_source, KABSourceTypeProperty)
     end
-  end
 
-  def local?
-    type == KABSourceTypeLocal
+    def local?
+      type == KABSourceTypeLocal
+    end
   end
 end
