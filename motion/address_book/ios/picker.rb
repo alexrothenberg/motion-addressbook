@@ -3,10 +3,10 @@ module AddressBook
     class << self
       attr_accessor :showing
     end
-    def self.show(&after)
+    def self.show(options={}, &after)
       raise "Cannot show two Pickers" if showing?
       @picker = Picker.new(&after)
-      @picker.show
+      @picker.show options
       @picker
     end
 
@@ -18,12 +18,13 @@ module AddressBook
       @after = after
     end
 
-    def show
+    def show(options)
       self.class.showing = true
 
       @people_picker_ctlr = ABPeoplePickerNavigationController.alloc.init
       @people_picker_ctlr.peoplePickerDelegate = self
-      UIApplication.sharedApplication.keyWindow.rootViewController.presentViewController(@people_picker_ctlr, animated:true, completion:nil)
+      presenter = options.fetch :presenter, UIApplication.sharedApplication.keyWindow.rootViewController
+      presenter.presentViewController(@people_picker_ctlr, animated:true, completion:nil)
     end
 
     def hide(ab_person=nil)
@@ -53,8 +54,8 @@ end
 
 module AddressBook
   module_function
-  def pick(&after)
-    AddressBook::Picker.show &after
+  def pick(options={}, &after)
+    AddressBook::Picker.show options, &after
   end
 end
 
