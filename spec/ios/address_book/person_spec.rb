@@ -1,4 +1,8 @@
 describe AddressBook::Person do
+  before do
+    @ab = AddressBook::AddrBook.new
+  end
+
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do
@@ -453,6 +457,37 @@ describe AddressBook::Person do
         AddressBook::Person.first_finder?('first_name='      ).should.be falsey
         AddressBook::Person.first_finder?('find_all_by_email').should.be falsey
       end
+    end
+  end
+
+  describe "sorting" do
+    before do
+      @ab.people.each(&:delete!)
+
+      @p1 = @ab.create_person({:first_name => 'Bob', :last_name => 'Edwards'}).uid
+      @p2 = @ab.create_person({:first_name => 'Doris', :last_name => 'Channing'}).uid
+      @p3 = @ab.create_person({:first_name => 'Anne', :last_name => 'Brown'}).uid
+      @p4 = @ab.create_person({:first_name => 'Eddie', :last_name => 'Anderson'}).uid
+      @p5 = @ab.create_person({:first_name => 'Carol', :last_name => 'Dolittle'}).uid
+    end
+
+    it "should sort on last name using OS sort" do
+      @ab.people(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
+    end
+    it "should support last-name sort in Person#all" do
+      AddressBook::Person.all(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
+    end
+
+    it "should sort on first name using OS sort" do
+      @ab.people(ordering: KABPersonSortByFirstName).map(&:uid).should.equal [@p3, @p1, @p5, @p2, @p4]
+    end
+    it "should support first-name sort in Person#all" do
+      AddressBook::Person.all(ordering: KABPersonSortByFirstName).map(&:uid).should.equal  [@p3, @p1, @p5, @p2, @p4]
+    end
+
+    it "should support a custom sort order" do
+      ordered = @ab.people { |p| p.last_name[1] }.map(&:uid)
+      ordered.should.equal [@p1, @p2, @p4, @p5, @p3]
     end
   end
 end

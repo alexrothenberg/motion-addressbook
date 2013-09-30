@@ -32,13 +32,10 @@ describe AddressBook::Group do
 
   describe 'a group with members' do
     before do
-      @p1 = @ab.new_person({:first_name => 'Alice', :emails => [{:label => 'home', :value => 'alice@example.com'}]})
-      @p1.save
-      @p2 = @ab.new_person({:first_name => 'Bob', :emails => [{:label => 'home', :value => 'bob@example.com'}]})
-      @p2.save
+      @p1 = @ab.create_person({:first_name => 'Alice', :emails => [{:label => 'home', :value => 'alice@example.com'}]})
+      @p2 = @ab.create_person({:first_name => 'Bob', :emails => [{:label => 'home', :value => 'bob@example.com'}]})
       @group = @ab.new_group(:name => 'Test Group')
-      @group << @p1
-      @group << @p2
+      @group.add(@p1, @p2)
       @group.save
     end
     after do
@@ -57,6 +54,17 @@ describe AddressBook::Group do
 
     it "should search by id" do
       @ab.group(@group.uid).name.should.equal @group.name
+    end
+
+    describe "after removing one member" do
+      before do
+        @group.remove(@p2)
+        @group.save
+      end
+
+      it "should no longer contain the removed member" do
+        @group.members.map(&:uid).should.equal [@p1.uid]
+      end
     end
   end
 

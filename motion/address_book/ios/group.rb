@@ -77,10 +77,25 @@ module AddressBook
       end
     end
 
+    def add(*items)
+      items.each { |item| self << item }
+      self
+    end
+
+    def remove(person_or_group)
+      ABGroupRemoveMember(ab_group, person_or_group.ab_record, error)
+      self
+    end
+
     def <<(person_or_group)
       raise ArgumentError, "Must save member before adding to group" if person_or_group.new?
       ABGroupAddMember(ab_group, person_or_group.ab_record, error)
     end
+
+    def to_s
+      "#<#{self.class}:#{uid}:#{name}: #{size} members>"
+    end
+    alias :inspect :to_s
 
     private
 

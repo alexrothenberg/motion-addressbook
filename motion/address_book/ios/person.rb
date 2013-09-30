@@ -13,16 +13,8 @@ module AddressBook
       end
     end
 
-    def self.all
-      ab = AddressBook.address_book
-      ab_people = ABAddressBookCopyArrayOfAllPeople(ab)
-      return [] if ab_people.nil?
-
-      people = ab_people.map do |ab_person|
-        new({}, ab_person, :address_book => ab)
-      end
-      people.sort! { |a,b| "#{a.first_name} #{a.last_name}" <=> "#{b.first_name} #{b.last_name}" }
-      people
+    def self.all(options = {})
+      AddressBook::AddrBook.new.people(options)
     end
 
     def self.create(attributes)
@@ -35,7 +27,7 @@ module AddressBook
       ABAddressBookAddRecord(address_book, ab_person, error)
       ABAddressBookSave(address_book, error)
       @attributes = nil # force refresh
-      uid
+      self
     end
 
     def attributes
