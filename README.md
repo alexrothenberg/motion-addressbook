@@ -98,6 +98,14 @@ AddressBook.pick { |person|
 }
 ```
 
+You can also specify the presenting controller:
+
+```ruby
+AddressBook.pick presenter: self do |person|
+  ...
+end
+```
+
 ### Working with Person objects
 
 Get a list of existing people from the Address Book. On IOS, results
