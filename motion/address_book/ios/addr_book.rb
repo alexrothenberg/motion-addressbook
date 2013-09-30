@@ -3,16 +3,24 @@ module AddressBook
     attr_reader :ab
 
     def initialize(&block)
+      @ab = NullAddrBook
       if authorized?
         activate!
-        block.call(self) if block
-      else
-        @ab = NullAddrBook
+        if block_given?
+          yield self
+        end
+      elsif block
+        # asynchronous auth
         AddressBook.request_authorization do |granted|
           if granted
             activate!
-            block.call(self) if block
+            block.call(self)
           end
+        end
+      else
+        # synchronous auth
+        if native_ab = AddressBook.address_book
+          @ab = LiveAddrBook.new(native_ab)
         end
       end
     end

@@ -1,16 +1,12 @@
 module AddressBook
   class Person
     attr_reader :error
+    attr_reader :address_book
 
-    def initialize(attributes={}, existing_ab_person = nil, opts = {})
-      @address_book = opts[:address_book]
-      if existing_ab_person.nil?
-        @ab_person = nil
-        @attributes = attributes
-      else
-        @ab_person = existing_ab_person
-        @attributes = nil
-      end
+    def initialize(attributes = {}, existing_ab_person = nil, opts = {})
+      @address_book = opts.fetch(:address_book) { AddressBook.address_book }
+      @attributes = attributes
+      @ab_person = existing_ab_person
     end
 
     def self.all(options = {})
@@ -455,10 +451,6 @@ module AddressBook
     def existing_record
       # what if there are more than one match? email should be unique but ...
       existing_records.first
-    end
-
-    def address_book
-      @address_book ||= AddressBook.address_book
     end
   end
 end
