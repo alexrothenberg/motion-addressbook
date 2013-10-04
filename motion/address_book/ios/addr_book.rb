@@ -37,7 +37,7 @@ module AddressBook
     end
 
     def people(opts = {}, &block)
-      ordered_list = ab_people(opts).map { |p| Person.new({}, p, address_book: ab.ab) }
+      ordered_list = ab_people(opts).map { |p| Person.new(nil, p, address_book: ab.ab) }
       if block
         ordered_list.sort_by { |p| block.call(p) }
       else

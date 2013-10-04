@@ -46,6 +46,9 @@ module AddressBook
         AddressBook::Group.new(:ab_group => ab_group, :address_book => @ab)
       end
     end
+    def group_count
+      groups.count
+    end
     def new_group(attributes)
       AddressBook::Group.new(:attributes => attributes, :address_book => @ab)
     end
@@ -61,9 +64,8 @@ module AddressBook
       end
     end
 
-    # def sources
-    #   # ABAddressBookCopyArrayOfAllSources(ab).map {|s| ABRecordCopyValue(s, KABSourceTypeProperty)}
-    #   ABAddressBookCopyArrayOfAllSources(ab).map {|s| Source.new(s)}
-    # end
+    def inspect
+      "#<#{self.class}:#{"0x%0x" % object_id} #{count} people, #{group_count} groups>"
+    end
   end
 end

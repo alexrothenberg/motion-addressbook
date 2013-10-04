@@ -3,7 +3,7 @@ module AddressBook
     attr_reader :error
     attr_reader :address_book
 
-    def initialize(attributes = {}, existing_ab_person = nil, opts = {})
+    def initialize(attributes = nil, existing_ab_person = nil, opts = {})
       @address_book = opts.fetch(:address_book) { AddressBook.address_book }
       @attributes = attributes
       @ab_person = existing_ab_person
@@ -53,7 +53,7 @@ module AddressBook
       conditions.keys.all? do |attribute|
         case attribute
         when :email
-          emails.attributes.map {|rec| rec[:value]}.any? {|v| v == conditions[attribute]}
+          emails.map {|rec| rec[:value]}.any? {|v| v == conditions[attribute]}
         else
           send(attribute) == conditions[attribute]
         end
@@ -203,6 +203,8 @@ module AddressBook
     def get_multi_valued(field)
       if mv = ABRecordCopyValue(ab_person, field)
         MultiValued.new(:ab_multi_value => mv)
+      else
+        []
       end
     end
 
@@ -211,7 +213,7 @@ module AddressBook
     end
 
     def phone_values
-      phones.attributes.map {|r| r[:value]}
+      phones.map {|r| r[:value]}
     end
 
     def emails
@@ -219,7 +221,7 @@ module AddressBook
     end
 
     def email_values
-      emails.attributes.map {|r| r[:value]}
+      emails.map {|r| r[:value]}
     end
 
     def addresses
@@ -248,8 +250,8 @@ module AddressBook
 
     def email; email_values.first; end
     def phone; phone_values.first; end
-    def url; urls.attributes.first[:value]; end
-    def address; addresses.attributes.first; end
+    def url; urls.any? && urls.first[:value]; end
+    def address; addresses.any? && addresses.first; end
 
     def find_or_new
       if new_record?
@@ -410,10 +412,9 @@ module AddressBook
       end
 
       Person.multi_value_property_map.each do |ab_property, attr_key|
-        if value = get_multi_valued(ab_property)
-          if value.attributes.any?
-            @attributes[attr_key] = value.attributes
-          end
+        value = get_multi_valued(ab_property)
+        if value.any?
+          @attributes[attr_key] = value.attributes
         end
       end
 

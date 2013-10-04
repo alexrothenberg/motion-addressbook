@@ -1,5 +1,7 @@
 module AddressBook
   class MultiValued
+    include Enumerable
+
     attr_reader :mv_type
 
     def initialize(opts)
@@ -23,6 +25,19 @@ module AddressBook
     def attributes
       @attributes ||= convert_multi_value_into_dictionary
     end
+    def to_ary
+      attributes
+    end
+    def [](index)
+      attributes[index]
+    end
+    def each
+      attributes.each { |i| yield i }
+    end
+    def to_s
+      "#<#{self.class}: #{attributes}>"
+    end
+    alias :inspect :to_s
 
     def convert_multi_value_into_dictionary
       count.times.map do |i|

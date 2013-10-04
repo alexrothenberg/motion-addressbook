@@ -47,6 +47,9 @@ module AddressBook
     def name
       ABRecordCopyValue(ab_group, KABGroupNameProperty)
     end
+    def name=(newname)
+      ABRecordSetValue(ab_group, KABGroupNameProperty, newname, error)
+    end
 
     def size
       members.count

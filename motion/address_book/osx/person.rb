@@ -1,9 +1,10 @@
 module AddressBook
   class Person
     attr_reader :error
+    attr_reader :address_book
 
     def initialize(target, opts = {})
-      @address_book = opts[:address_book]
+      @address_book = opts.fetch(:address_book) { AddressBook.address_book }
       if target.respond_to?(:fetch)
         # data for a new Person, to be saved to the Address Book
         @ab_person = nil
@@ -111,6 +112,8 @@ module AddressBook
     def get_multi_valued(field)
       if mv = get_field(field)
         MultiValued.new(:ab_multi_value => mv)
+      else
+        []
       end
     end
 
@@ -318,7 +321,7 @@ module AddressBook
 
       MultiValuePropertyMap.each do |ab_property, attr_key|
         if value = get_multi_valued(ab_property)
-          if value.attributes.any?
+          if value.any?
             @attributes[attr_key] = value.attributes
           end
         end
@@ -345,10 +348,6 @@ module AddressBook
         multi_field = MultiValued.new(:attributes => values)
         set_field(field, multi_field.ab_multi_value)
       end
-    end
-
-    def address_book
-      @address_book ||= AddressBook.address_book
     end
   end
 end
