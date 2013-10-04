@@ -3,6 +3,10 @@ describe AddressBook::Person do
     @ab = AddressBook::AddrBook.new
   end
 
+  it "should be authorized" do
+    @ab.authorized?.should.be.true
+  end
+
   describe 'ways of creating and finding people' do
     describe 'new' do
       before do

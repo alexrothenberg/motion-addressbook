@@ -5,23 +5,12 @@
 #
 module AddressBook
   class Group
-    attr_reader :attributes, :error
+    attr_reader :attributes, :error, :address_book
 
     def initialize(opts)
-      @address_book = opts[:address_book]
-      if opts[:ab_group]
-        # import existing
-        @ab_group = opts[:ab_group]
-        @attributes = nil
-      else
-        # create new
-        @ab_group = nil
-        @attributes = opts[:attributes]
-      end
-    end
-
-    def address_book
-      @address_book ||= AddressBook.address_book
+      @address_book = opts.fetch(:address_book) { AddressBook.address_book }
+      @ab_group = opts[:ab_group]
+      @attributes = opts[:attributes]
     end
 
     def save
@@ -57,6 +46,9 @@ module AddressBook
 
     def name
       ABRecordCopyValue(ab_group, KABGroupNameProperty)
+    end
+    def name=(newname)
+      ABRecordSetValue(ab_group, KABGroupNameProperty, newname, error)
     end
 
     def size
