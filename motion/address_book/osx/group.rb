@@ -6,9 +6,10 @@
 module AddressBook
   class Group
     attr_reader :attributes, :error
+    attr_reader :address_book
 
     def initialize(opts)
-      @address_book = opts[:address_book]
+      @address_book = opts.fetch(:address_book) { AddressBook.address_book }
       if opts[:ab_group]
         # import existing
         @ab_group = opts[:ab_group]
@@ -18,10 +19,6 @@ module AddressBook
         @ab_group = nil
         @attributes = opts[:attributes]
       end
-    end
-
-    def address_book
-      @address_book ||= AddressBook.address_book
     end
 
     def save
@@ -64,6 +61,9 @@ module AddressBook
     def name
       get_field(KABGroupNameProperty)
     end
+    def name=(newname)
+      ABRecordSetValue(ab_group, KABGroupNameProperty, newname)
+    end
 
     def size
       members.count
@@ -85,7 +85,15 @@ module AddressBook
 
     def <<(person_or_group)
       raise ArgumentError, "Must save member before adding to group" if person_or_group.new?
-      ABGroupAddMember(ab_group, person_or_group.ab_record, error)
+      ABGroupAddMember(ab_group, person_or_group.ab_record)
+    end
+    def add(*items)
+      items.each { |item| self << item }
+      self
+    end
+    def remove(person_or_group)
+      ABGroupRemoveMember(ab_group, person_or_group.ab_record)
+      self
     end
 
     def local?
