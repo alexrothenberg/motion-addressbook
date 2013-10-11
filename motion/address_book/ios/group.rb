@@ -30,9 +30,13 @@ module AddressBook
       unless new?
         ABAddressBookRemoveRecord(address_book, ab_group, error)
         ABAddressBookSave(address_book, error)
-        @ab_group = nil
+        @ab_group = :deleted
         self
       end
+    end
+
+    def deleted?
+      @ab_group == :deleted
     end
 
     def ab_group
@@ -41,7 +45,7 @@ module AddressBook
     alias :ab_record :ab_group
 
     def uid
-      ABRecordGetRecordID(ab_group)
+      deleted? ? nil : ABRecordGetRecordID(ab_group)
     end
 
     def name
@@ -85,7 +89,11 @@ module AddressBook
     end
 
     def to_s
-      "#<#{self.class}:#{uid}:#{name}: #{size} members>"
+      if deleted?
+        "#<#{self.class}:DELETED>"
+      else
+        "#<#{self.class}:#{uid}:#{name}: #{size} members>"
+      end
     end
     alias :inspect :to_s
 
