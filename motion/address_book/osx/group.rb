@@ -62,7 +62,7 @@ module AddressBook
       get_field(KABGroupNameProperty)
     end
     def name=(newname)
-      ABRecordSetValue(ab_group, KABGroupNameProperty, newname)
+      ab_group.setValue(newname, forProperty: KABGroupNameProperty)
     end
 
     def size

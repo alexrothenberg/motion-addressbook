@@ -24,6 +24,10 @@ describe AddressBook::Group do
       @group.should.not.be.new
     end
 
+    it "should describe itself" do
+      @group.to_s.should.match /AddressBook::Group:.*:Test Group: 0 members/
+    end
+
     it "should not add unsaved person records" do
       p = @ab.new_person({:first_name => 'Alice', :last_name => 'Artichoke'})
       lambda {@group << p}.should.raise ArgumentError
@@ -56,6 +60,10 @@ describe AddressBook::Group do
       @ab.group(@group.uid).name.should.equal @group.name
     end
 
+    it "should describe itself" do
+      @group.to_s.should.match /AddressBook::Group:.*:Test Group: 2 members/
+    end
+
     describe "after removing one member" do
       before do
         @group.remove(@p2)
@@ -65,6 +73,30 @@ describe AddressBook::Group do
       it "should no longer contain the removed member" do
         @group.members.map(&:uid).should.equal [@p1.uid]
       end
+    end
+  end
+
+  describe 'a deleted group' do
+    before do
+      @p1 = @ab.create_person({:first_name => 'Alice', :emails => [{:label => 'home', :value => 'alice@example.com'}]})
+      @p2 = @ab.create_person({:first_name => 'Bob', :emails => [{:label => 'home', :value => 'bob@example.com'}]})
+      @group = @ab.new_group(:name => 'Test Group')
+      @group.add(@p1, @p2)
+      @group.save
+      @group.delete!
+    end
+
+    after do
+      @p1.delete!
+      @p2.delete!
+    end
+
+    it "should have no uid" do
+      @group.uid.should.be.nil
+    end
+
+    it "should describe itself" do
+      @group.to_s.should.match /AddressBook::Group:DELETED/
     end
   end
 
