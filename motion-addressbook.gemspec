@@ -4,6 +4,7 @@ require File.expand_path('../lib/motion-addressbook/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.name          = "motion-addressbook"
   gem.version       = Motion::Addressbook::VERSION
+  gem.license       = 'MIT'
 
   gem.authors       = ["Alex Rothenberg", "Jason May"]
   gem.email         = ["alex@alexrothenberg.com", "jmay@pobox.com"]
