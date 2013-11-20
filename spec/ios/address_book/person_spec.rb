@@ -18,12 +18,12 @@ describe AddressBook::Person do
         @alex.should.not.exists?
       end
       it 'should have initial values' do
-        @alex.first_name.should == 'Alex'
+        @alex.first_name.should.equal 'Alex'
         @alex.last_name.should  == 'Testy'
-        @alex.email_values.should == [@data[:emails][0][:value]]
+        @alex.email_values.should.equal [@data[:emails][0][:value]]
       end
       it 'should have a composite name' do
-        @alex.composite_name.should == 'Alex Testy'
+        @alex.composite_name.should.equal 'Alex Testy'
       end
     end
 
@@ -39,9 +39,9 @@ describe AddressBook::Person do
         it 'should find match' do
           @alex.uid.should.not.be.nil
           alex = AddressBook::Person.find_by_uid @alex.uid
-          alex.uid.should == @alex.uid
+          alex.uid.should.equal @alex.uid
           alex.email_values.should.include? @email
-          alex.first_name.should == 'Alex'
+          alex.first_name.should.equal 'Alex'
           alex.last_name.should  == 'Testy'
         end
       end
@@ -52,13 +52,13 @@ describe AddressBook::Person do
           alexes.each do |alex|
             alex.uid.should != nil
             alex.email_values.should.include? @email
-            alex.first_name.should == 'Alex'
+            alex.first_name.should.equal 'Alex'
             alex.last_name.should  == 'Testy'
           end
         end
         it 'should give empty list when nothing matches' do
           alexes = AddressBook::Person.find_all_by_email unique_email
-          alexes.should == []
+          alexes.should.equal []
         end
       end
       describe '.find_by_email' do
@@ -66,7 +66,7 @@ describe AddressBook::Person do
           alex = AddressBook::Person.find_by_email @email
           alex.uid.should.not.be.nil
           alex.email_values.should.include? @email
-          alex.first_name.should == 'Alex'
+          alex.first_name.should.equal 'Alex'
           alex.last_name.should  == 'Testy'
         end
         it 'should give empty list when nothing matches' do
@@ -81,13 +81,13 @@ describe AddressBook::Person do
           alexes.each do |alex|
             alex.uid.should != nil
             alex.email_values.should.include? @email
-            alex.first_name.should == 'Alex'
+            alex.first_name.should.equal 'Alex'
             alex.last_name.should  == 'Testy'
           end
         end
         it 'should give empty list when nothing matches' do
           alexes = AddressBook::Person.where(:email => unique_email)
-          alexes.should == []
+          alexes.should.equal []
         end
       end
 
@@ -102,7 +102,7 @@ describe AddressBook::Person do
         it 'should get bigger when we create another' do
           initial_people_count = AddressBook::Person.all.size
           @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
-          AddressBook::Person.all.size.should == (initial_people_count + 1)
+          AddressBook::Person.all.size.should.equal (initial_people_count + 1)
           @person.delete!
         end
       end
@@ -121,17 +121,17 @@ describe AddressBook::Person do
         alex = AddressBook::Person.find_or_new_by_email(@email)
         alex.should.not.be.new_record
         alex.uid.should != nil
-        alex.first_name.should == 'Alex'
+        alex.first_name.should.equal 'Alex'
         alex.last_name.should  == 'Testy'
-        alex.emails.attributes.map{|r| r[:value]}.should == [@email]
+        alex.emails.attributes.map{|r| r[:value]}.should.equal [@email]
       end
       it 'should return new person when no match found' do
         never_before_used_email = unique_email
         new_person = AddressBook::Person.find_or_new_by_email(never_before_used_email)
         new_person.should.be.new_record
         new_person.should.not.exists
-        new_person.email_values.should == [never_before_used_email]
-        new_person.first_name.should == nil
+        new_person.email_values.should.equal [never_before_used_email]
+        new_person.first_name.should.equal nil
       end
     end
   end
@@ -284,7 +284,7 @@ describe AddressBook::Person do
         end
 
         it 'should have a composite name' do
-          @ab_person.composite_name.should == 'Mr. Alex Q. Testy III'
+          @ab_person.composite_name.should.equal 'Mr. Alex Q. Testy III'
         end
 
         it 'should be able to count the emails' do
@@ -325,8 +325,8 @@ describe AddressBook::Person do
       it 'should know it is not new' do
         @ab_person.should.not.be.new_record
         @ab_person.should.be.exists
-        @ab_person.first_name.should == 'Alex'
-        @ab_person.department.should == 'Development'
+        @ab_person.first_name.should.equal 'Alex'
+        @ab_person.department.should.equal 'Development'
       end
 
       it 'should not change ID' do
@@ -341,7 +341,7 @@ describe AddressBook::Person do
 
         it 'should be able to get each of the single value fields' do
           @match = AddressBook::Person.find_by_email(@ab_person.email_values.first)
-          @match.first_name.should == 'New First Name'
+          @match.first_name.should.equal 'New First Name'
           @match.uid.should.equal @ab_person.uid
         end
       end
