@@ -27,11 +27,6 @@ def protect_existing_address_book
   `mv \"#{AB_PATH}\" \"#{AB_PATH_BAK}\"`
   # Kernel.system "rm -rf \"#{AB_PATH_BAK}\""
   # Kernel.system "mv \"#{AB_PATH}\" \"#{AB_PATH_BAK}\""
-
-  unless AddressBook.authorized?
-    warn "BLOCKING FOR AUTHORIZATION"
-    AddressBook.request_authorization
-  end
 end
 
 at_exit do
@@ -41,4 +36,13 @@ at_exit do
   Kernel.system "mv \"#{AB_PATH_BAK}\" \"#{AB_PATH}\""
 end
 
+def wait_for_authorization
+  @semaphore = Dispatch::Semaphore.new(0)
+  AddressBook::AddrBook.new do
+    @semaphore.signal
+  end
+  @semaphore.wait
+end
+
 protect_existing_address_book
+wait_for_authorization
