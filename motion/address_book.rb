@@ -13,9 +13,14 @@ module AddressBook
     end
   end
 
+  def instance
+    @instance ||= AddrBook.new
+  end
+
   def count
     if App.ios?
-      ABAddressBookGetPersonCount(address_book)
+      # ABAddressBookGetPersonCount(address_book)
+      instance.count
     else
       address_book.count
     end

@@ -28,6 +28,14 @@ module AddressBook
     def activate!
       @ab = LiveAddrBook.new(AddressBook.address_book)
     end
+
+    def observe!
+      @notifier = Proc.new do |ab_instance, always_nil, context|
+        App.notification_center.post :addressbook_updated, self
+      end
+      ab.register_callback(@notifier)
+    end
+
     def authorized?
       AddressBook.authorized?
     end
@@ -143,8 +151,8 @@ module AddressBook
     def sources
       ABAddressBookCopyArrayOfAllSources(ab)
     end
-    def register_callback(callback, context)
-      ABAddressBookRegisterExternalChangeCallback(ab, callback, context)
+    def register_callback(callback)
+      ABAddressBookRegisterExternalChangeCallback(ab, callback, nil)
     end
   end
 end

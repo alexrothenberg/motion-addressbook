@@ -175,6 +175,15 @@ alex.job_title = 'RubyMotion Developer'
 alex.save
 ```
 
+Or to alter all the attributes at once (preserve the record identifier
+but change some or all of the values):
+
+```ruby
+alex = AddressBook::Person.find_by_email('alex@example.com')
+alex.replace({:first_name=>"Alex", :last_name=>"Rider", ...})
+alex.save
+```
+
 ### Contact Groups
 
 ```ruby
@@ -185,6 +194,27 @@ g = ab.groups.first
 g.members
 => [#<AddressBook::Person:2: {:first_name=>"Daniel", :last_name=>"Higgins", ...}>]
 ```
+
+### Notifications (\* iOS only \*)
+
+The iOS Address Book does not deliver notifications of changes through
+the standard Notification Center. `motion-addressbook` wraps the
+framework `ABAddressBookRegisterExternalChangeCallback` call with an
+optional handler that converts the update event to an iOS
+notification.
+
+```ruby
+ab.observe!
+
+App.notification_center.observe :addressbook_updated do |notification|
+  NSLog "Address Book was changed!"
+end
+```
+
+The notification must be explicitly enabled in your application. In
+some cases iOS appears to trigger multiple notifications for the same
+change event, and if you are doing many changes at once you will
+receive a long stream of notifications.
 
 ## Contributing
 

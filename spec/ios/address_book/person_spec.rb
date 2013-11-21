@@ -494,4 +494,26 @@ describe AddressBook::Person do
       ordered.should.equal [@p1, @p2, @p4, @p5, @p3]
     end
   end
+
+  describe "notifications" do
+    before do
+      @ab1 = AddressBook::AddrBook.new
+      @ab2 = AddressBook::AddrBook.new
+      @ab1.observe!
+      @ab2.observe!
+      @notifications = 0
+      App.notification_center.observe :addressbook_updated do |notification|
+        @notifications += 1
+      end
+
+      @alice = @ab2.create_person({first_name: 'Alice'})
+      @bob = @ab1.create_person({first_name: 'Bob'})
+      @alice.delete!
+      @bob.delete!
+    end
+
+    it "should be notified of every change" do
+      @notifications.should.equal 4
+    end
+  end
 end
