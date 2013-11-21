@@ -4,6 +4,7 @@ module AddressBook
 
     def initialize
       @ab = ABAddressBook.addressBook
+      yield self if block_given?
     end
     def people(opts = {})
       if opts[:local]
@@ -58,9 +59,9 @@ module AddressBook
       end
     end
 
-    def notify_changes(callback, context)
+    def observe!
       App.notification_center.observe KABDatabaseChangedExternallyNotification do |notification|
-        callback.call(context)
+        App.notification_center.post :addressbook_updated, self
       end
     end
 
