@@ -29,20 +29,44 @@ def protect_existing_address_book
   # Kernel.system "mv \"#{AB_PATH}\" \"#{AB_PATH_BAK}\""
 end
 
-at_exit do
-  warn "RESTORING ORIGINAL ADDRESS BOOK IN SIMULATOR"
+# at_exit do
+#   warn "RESTORING ORIGINAL ADDRESS BOOK IN SIMULATOR"
+#
+#   Kernel.system "rm -rf \"#{AB_PATH}\""
+#   Kernel.system "mv \"#{AB_PATH_BAK}\" \"#{AB_PATH}\""
+# end
 
-  Kernel.system "rm -rf \"#{AB_PATH}\""
-  Kernel.system "mv \"#{AB_PATH_BAK}\" \"#{AB_PATH}\""
-end
+# def wait_for_authorization
+#   @semaphore = Dispatch::Semaphore.new(0)
+#   AddressBook::AddrBook.new do
+#     @semaphore.signal
+#   end
+#   @semaphore.wait
+# end
 
-def wait_for_authorization
-  @semaphore = Dispatch::Semaphore.new(0)
-  AddressBook::AddrBook.new do
-    @semaphore.signal
+# protect_existing_address_book
+# wait_for_authorization
+
+module Bacon
+  class << self
+    @@old_run = instance_method(:run)
+    @@already_started = false
+
+    def run
+      if AddressBook.authorized?
+        @@old_run.bind(self).call
+      else
+        AddressBook::AddrBook.new do |ab|
+          if ab
+            EM.schedule_on_main do
+              Bacon.run
+            end
+          else
+            warn "ACCESS DENIED - TERMINATING"
+            exit
+          end
+        end
+      end
+    end
   end
-  @semaphore.wait
 end
-
-protect_existing_address_book
-wait_for_authorization

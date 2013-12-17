@@ -10,7 +10,7 @@ module AddressBook
     end
 
     def self.all(options = {})
-      AddressBook::AddrBook.new.people(options)
+      AddressBook::AddrBook.instance.people(options)
     end
 
     def self.create(attributes)
