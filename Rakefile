@@ -21,6 +21,10 @@ Motion::Project::App.setup do |app|
   else
     app.specs_dir = "./spec/ios"
   end
+
+  if ENV['osx']
+    app.info_plist['LSUIElement'] = true
+  end
 end
 
 # The test suite may interfere with contacts already created in the

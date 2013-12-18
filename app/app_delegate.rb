@@ -11,16 +11,13 @@ class AppDelegate
 
   def command_line
     if command = NSProcessInfo.processInfo.environment['dump']
+      warn "Executing command line instruction: #{command}"
       AddressBook::AddrBook.new do |ab|
         case command
         when 'people'
-          ab.people.each do |person|
-            puts BW::JSON.generate(person.attributes)
-          end
+          puts BW::JSON.generate(ab.people.map(&:attributes))
         when 'groups'
-          ab.groups.each do |group|
-            puts BW::JSON.generate(group.attributes)
-          end
+          puts BW::JSON.generate(ab.groups.map { |g| {name: g.name, members: g.members.map(&:uid) }})
         end
       end
     end
