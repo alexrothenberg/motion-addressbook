@@ -54,6 +54,8 @@ module AddressBook
         case attribute
         when :email
           emails.map {|rec| rec[:value]}.any? {|v| v == conditions[attribute]}
+        when :phone
+          phones.map {|rec| rec[:value]}.any? {|v| v == conditions[attribute]}
         else
           send(attribute) == conditions[attribute]
         end
