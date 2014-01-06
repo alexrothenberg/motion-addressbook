@@ -60,19 +60,16 @@ module AddressBook
       @mv_type = multi_value_property_type
       mv = ABMultiValueCreateMutable(mv_type)
 
-      case mv_type
-      when KABMultiStringPropertyType
-        @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, rec[:value], localized_label(rec[:label]), nil)
-        end
-      when KABMultiDateTimePropertyType
-        @attributes.each do |rec|
-          ABMultiValueAddValueAndLabel(mv, rec[:date], localized_label(rec[:label]), nil)
-        end
-      else # KABMultiDictionaryPropertyType
-        @attributes.each do |rec|
+      @attributes.each do |rec|
+        label = localized_label(rec[:label])
+        case mv_type
+        when KABMultiStringPropertyType
+          ABMultiValueAddValueAndLabel(mv, rec[:value], label, nil)
+        when KABMultiDateTimePropertyType
+          ABMultiValueAddValueAndLabel(mv, rec[:date], label, nil)
+        else # KABMultiDictionaryPropertyType
           if value = dict_to_ab_record(rec)
-            ABMultiValueAddValueAndLabel(mv, value, localized_label(rec[:label]), nil)
+            ABMultiValueAddValueAndLabel(mv, value, label, nil)
           end
         end
       end
