@@ -28,6 +28,9 @@ BubbleWrap.require_ios do
   BW.require 'motion/address_book/ios/picker.rb' do
     file('motion/address_book/ios/picker.rb').uses_framework('AddressBookUI')
   end
+  BW.require 'motion/address_book/ios/creator.rb' do
+    file('motion/address_book/ios/creator.rb').uses_framework('AddressBookUI')
+  end
 end
 
 BubbleWrap.require_osx do

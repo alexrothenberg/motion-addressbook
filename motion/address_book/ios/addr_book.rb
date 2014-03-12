@@ -103,6 +103,10 @@ module AddressBook
       "#<#{self.class}:#{"0x%0x" % object_id} #{ab.status}>"
     end
 
+    def creator(options, &after)
+      AddressBook::Creator.show(options.merge(ab: self), &after)
+    end
+
     private
 
     def ab_people(opts = {})
