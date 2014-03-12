@@ -1,6 +1,6 @@
 describe AddressBook::Person do
   before do
-    @ab ||= AddressBook::AddrBook.new
+    @ab = AddressBook::AddrBook.new
   end
 
   it "should be authorized" do
@@ -93,16 +93,16 @@ describe AddressBook::Person do
 
       describe '.all' do
         it 'should have the person we created' do
-          all_names = AddressBook::Person.all.map do |person|
+          all_names = @ab.people.map do |person|
             [person.first_name, person.last_name]
           end
           all_names.should.include? [@alex.first_name, @alex.last_name]
         end
 
         it 'should get bigger when we create another' do
-          initial_people_count = AddressBook::Person.all.size
-          @person = AddressBook::Person.create({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
-          AddressBook::Person.all.size.should.equal (initial_people_count + 1)
+          initial_people_count = @ab.count
+          @person = @ab.create_person({:first_name => 'Alex2', :last_name=>'Rothenberg2'})
+          @ab.count.should.equal (initial_people_count + 1)
           @person.delete!
         end
       end
@@ -149,10 +149,12 @@ describe AddressBook::Person do
         :department => 'Development',
         :organization => 'The Company',
         :note => 'some important guy',
+        # :mobile_phone => '123 456 7890', :office_phone => '987 654 3210',
         :phones => [
           {:label => 'mobile', :value => '123 456 7899'},
           {:label => 'office', :value => '987 654 3210'}
         ],
+        # :email => unique_email,
         :emails => [
           {:label => 'work', :value => unique_email}
         ],
@@ -464,36 +466,64 @@ describe AddressBook::Person do
 
   describe "sorting" do
     before do
+      # warn "BEFORE CREATION COUNT: #{@ab.count}"
       @ab.people.each(&:delete!)
 
-      @p1 = @ab.create_person({:first_name => 'Bob', :last_name => 'Edwards'}).uid
-      @p2 = @ab.create_person({:first_name => 'Doris', :last_name => 'Channing'}).uid
-      @p3 = @ab.create_person({:first_name => 'Anne', :last_name => 'Brown'}).uid
-      @p4 = @ab.create_person({:first_name => 'Eddie', :last_name => 'Anderson'}).uid
-      @p5 = @ab.create_person({:first_name => 'Carol', :last_name => 'Dolittle'}).uid
+      @p1 = @ab.create_person(first_name: 'Bob', last_name: 'Edwards')
+      # warn "I CREATED #{@p1}"
+      @p2 = @ab.create_person(first_name: 'Doris', last_name: 'Channing')
+      @p3 = @ab.create_person(first_name: 'Anne', last_name: 'Brown')
+      @p4 = @ab.create_person(first_name: 'Eddie', last_name: 'Anderson')
+      @p5 = @ab.create_person(first_name: 'Carol', last_name: 'Dolittle')
+      # warn "AFTER CREATION COUNT: #{@ab.count}"
     end
 
-    it "should sort on last name using OS sort" do
-      @ab.people(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
-    end
-    it "should support last-name sort in Person#all" do
-      AddressBook::Person.all(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
-    end
-
-    it "should sort on first name using OS sort" do
-      @ab.people(ordering: KABPersonSortByFirstName).map(&:uid).should.equal [@p3, @p1, @p5, @p2, @p4]
-    end
-    it "should support first-name sort in Person#all" do
-      AddressBook::Person.all(ordering: KABPersonSortByFirstName).map(&:uid).should.equal  [@p3, @p1, @p5, @p2, @p4]
+    after do
+      # warn "BEFORE CLEANUP COUNT: #{@ab.count}"
+      @ab.people.each(&:delete!)
+      # warn "AFTER CLEANUP COUNT: #{@ab.count}"
+      # [@p1, @p2, @p3, @p4, @p5].each(&:delete!)
     end
 
-    it "should support a custom sort order" do
-      ordered = @ab.people { |p| p.last_name[1] }.map(&:uid)
-      ordered.should.equal [@p1, @p2, @p4, @p5, @p3]
+    describe "with different sort orders" do
+      it "should sort on last name using OS sort" do
+        # warn "PEOPLE COUNT IS #{@ab.people.count}"
+        expectation = [@p4, @p3, @p2, @p5, @p1].map(&:uid)
+        @ab.people(ordering: KABPersonSortByLastName).map(&:uid).should.equal expectation
+      end
+      # it "should support last-name sort in Person#all" do
+      #   AddressBook::Person.all(ordering: KABPersonSortByLastName).map(&:uid).should.equal [@p4, @p3, @p2, @p5, @p1]
+      # end
+
+      it "should pass" do
+        3.should == 3
+      end
+
+      it "should sort on first name using OS sort" do
+        # warn "PEOPLE COUNT IS #{@ab.people.count}"
+        expectation = [@p3, @p1, @p5, @p2, @p4].map(&:uid)
+        @ab.people(ordering: KABPersonSortByFirstName).map(&:uid).should.equal expectation
+      end
+      # it "should support first-name sort in Person#all" do
+      #   AddressBook::Person.all(ordering: KABPersonSortByFirstName).map(&:uid).should.equal  [@p3, @p1, @p5, @p2, @p4]
+      # end
+
+      it "should pass" do
+        3.should == 3
+      end
+
+      it "should support a custom sort order" do
+        # warn "@ab.people is #{@ab.people}"
+        # warn "PEOPLE COUNT IS #{@ab.people.count}"
+        ordered = @ab.people { |p| p.last_name[1] }.map(&:uid)
+        # warn "sorted is #{ordered}"
+        expectation = [@p1, @p2, @p4, @p5, @p3].map(&:uid)
+        ordered.should.equal expectation
+      end
     end
   end
 
-  describe "notifications" do
+  describe "notifications across AB instances" do
     before do
       @ab1 = AddressBook::AddrBook.new
       @ab2 = AddressBook::AddrBook.new
@@ -503,15 +533,26 @@ describe AddressBook::Person do
       App.notification_center.observe :addressbook_updated do |notification|
         @notifications += 1
       end
+    end
 
+    # should see a single notification for each change to the AB database:
+    #   2 creations, 2 deletions
+    it "should come in once for every external change" do
       @alice = @ab2.create_person({first_name: 'Alice'})
       @bob = @ab1.create_person({first_name: 'Bob'})
       @alice.delete!
       @bob.delete!
-    end
 
-    it "should be notified of every change" do
       @notifications.should.equal 4
     end
   end
+
+  after do
+    puts
+    NSLog("=============== person_spec.rb line #{__LINE__} ===============")
+    wait 1 do
+      NSLog("=============== person_spec.rb line #{__LINE__} ===============")
+    end
+  end
+
 end
