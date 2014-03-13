@@ -1,17 +1,16 @@
 require "bundler/gem_tasks"
 $:.unshift("/Library/RubyMotion/lib")
+
 if ENV['osx']
   require 'motion/project/template/osx'
 else
   require 'motion/project/template/ios'
 end
+
 Bundler.setup
 Bundler.require
 
-unless ENV['osx']
-  # iOS needs an AppDelegate for REPL to launch; steal one from BW
-  require 'bubble-wrap/test'
-end
+require 'bubble-wrap/reactor'
 
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
@@ -22,4 +21,38 @@ Motion::Project::App.setup do |app|
   else
     app.specs_dir = "./spec/ios"
   end
+
+  if ENV['osx']
+    app.info_plist['LSUIElement'] = true
+  end
+end
+
+# The test suite may interfere with contacts already created in the
+# simulator.  In order to avoid disrupting anything the existing
+# simulator environment, run the test suite in its own blank simulator
+# and clean up afterwards.
+
+namespace :spec do
+  task :isolate do
+    system "launchctl list | grep simulator | cut -f3 | xargs -L 1 launchctl remove"
+
+    @_protected = []
+    Dir.glob("#{ENV['HOME']}/Library/Application Support/iPhone Simulator/[0-9]*").each do |dir|
+      warn "PROTECTING EXISTING SIMULATOR #{dir}"
+      File.rename(dir, "#{dir}.backup")
+      @_protected << dir
+    end
+
+    at_exit do
+      system "launchctl list | grep simulator | cut -f3 | head -1 | xargs launchctl remove"
+
+      @_protected.each do |dir|
+        warn "RESTORING SIMULATOR #{dir}"
+        system "rm -rf \"#{dir}\""
+        File.rename("#{dir}.backup", dir)
+      end
+    end
+  end
+
+  task :simulator => :isolate
 end

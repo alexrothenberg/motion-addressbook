@@ -15,6 +15,8 @@ module AddressBook
           if granted
             activate!
             block.call(self)
+          else
+            block.call(nil)
           end
         end
       else
@@ -23,6 +25,10 @@ module AddressBook
           @ab = LiveAddrBook.new(native_ab)
         end
       end
+    end
+
+    def self.instance
+      @instance ||= new
     end
 
     def activate!
@@ -41,7 +47,7 @@ module AddressBook
     end
 
     def auth!
-      raise "iOS Address Book authorization is required." if @ab.nil?
+      raise SecurityError, "iOS Address Book authorization is required." if @ab.nil?
     end
 
     def people(opts = {}, &block)
