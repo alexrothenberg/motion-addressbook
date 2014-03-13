@@ -38,16 +38,25 @@ namespace :spec do
 
     @_protected = []
     Dir.glob("#{ENV['HOME']}/Library/Application Support/iPhone Simulator/[0-9]*").each do |dir|
-      warn "PROTECTING EXISTING SIMULATOR #{dir}"
-      File.rename(dir, "#{dir}.backup")
-      @_protected << dir
+      if Dir.exists?("#{dir}.backup")
+        warn "*" * 70
+        warn "PREVIOUS TEST RUN FAILED. RESTORING SIMULATOR BACKUP AND ABORTING."
+        warn "*" * 70
+        system "rm -rf \"#{dir}\""
+        File.rename("#{dir}.backup", dir)
+        exit 1
+      else
+        warn "PROTECTING EXISTING SIMULATOR IN #{dir}"
+        File.rename(dir, "#{dir}.backup")
+        @_protected << dir
+      end
     end
 
     at_exit do
       system "launchctl list | grep simulator | cut -f3 | head -1 | xargs launchctl remove"
 
       @_protected.each do |dir|
-        warn "RESTORING SIMULATOR #{dir}"
+        warn "RESTORING SIMULATOR IN #{dir}"
         system "rm -rf \"#{dir}\""
         File.rename("#{dir}.backup", dir)
       end
