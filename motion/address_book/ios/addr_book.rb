@@ -103,6 +103,10 @@ module AddressBook
       "#<#{self.class}:#{"0x%0x" % object_id} #{ab.status}>"
     end
 
+    def picker(options={}, &after)
+      AddressBook::Picker.show options, &after
+    end
+
     def creator(options, &after)
       AddressBook::Creator.show(options.merge(ab: self), &after)
     end

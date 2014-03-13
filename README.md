@@ -86,16 +86,16 @@ end
 The iOS6 simulator does not demand AddressBook authorization. The iOS7
 simulator does.
 
-### Showing the ABPeoplePicker
+### Showing the ABPeoplePickerNavigationController
 
 ```ruby
-AddressBook.pick { |person|
+AddressBook.pick do |person|
   if person
     # person is an AddressBook::Person object
   else
     # canceled
   end
-}
+end
 ```
 
 You can also specify the presenting controller:
@@ -103,6 +103,18 @@ You can also specify the presenting controller:
 ```ruby
 AddressBook.pick presenter: self do |person|
   ...
+end
+```
+
+### Showing the ABNewPersonViewController
+
+```ruby
+AddressBook.create do |person|
+  if person
+    # person is an AddressBook::Person object
+  else
+    # canceled
+  end
 end
 ```
 
