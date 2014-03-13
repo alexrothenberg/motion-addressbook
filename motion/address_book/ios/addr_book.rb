@@ -104,7 +104,7 @@ module AddressBook
     end
 
     def picker(options={}, &after)
-      AddressBook::Picker.show options, &after
+      AddressBook::Picker.show options.merge(ab: self), &after
     end
 
     def creator(options, &after)

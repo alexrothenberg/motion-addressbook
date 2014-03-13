@@ -5,7 +5,7 @@ module AddressBook
     end
     def self.show(options={}, &after)
       raise "Cannot show two Pickers" if showing?
-      @picker = Picker.new(&after)
+      @picker = self.new(options[:ab] || AddressBook::AddrBook.instance, &after)
       @picker.show options
       @picker
     end
@@ -14,7 +14,8 @@ module AddressBook
       !!showing
     end
 
-    def initialize(&after)
+    def initialize(ab, &after)
+      @ab = ab
       @after = after
     end
 
@@ -23,17 +24,19 @@ module AddressBook
 
       @people_picker_ctlr = ABPeoplePickerNavigationController.alloc.init
       @people_picker_ctlr.peoplePickerDelegate = self
-      presenter = options.fetch :presenter, UIApplication.sharedApplication.keyWindow.rootViewController
-      presenter.presentViewController(@people_picker_ctlr, animated:true, completion:nil)
+
+      @presenter = options.fetch :presenter, UIApplication.sharedApplication.keyWindow.rootViewController
+      @animated = options.fetch :animated, true
+      @presenter.presentViewController(@people_picker_ctlr, animated: @animated, completion: nil)
     end
 
     def hide(ab_person=nil)
-      person = ab_person ? AddressBook::Person.new({}, ab_person) : nil
+      person = ab_person && @ab.person(ABRecordGetRecordID(ab_person))
 
-      UIApplication.sharedApplication.keyWindow.rootViewController.dismissViewControllerAnimated(true, completion:lambda{
-        @after.call(person) if @after
-        self.class.showing = false
-      })
+      @presenter.dismissViewControllerAnimated(@animated, completion: lambda do
+          @after.call(person) if @after
+          self.class.showing = false
+        end)
     end
 
     def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person)
@@ -49,13 +52,6 @@ module AddressBook
     def peoplePickerNavigationControllerDidCancel(people_picker)
       hide
     end
+
   end
 end
-
-module AddressBook
-  module_function
-  def pick(options={}, &after)
-    AddressBook::Picker.show options, &after
-  end
-end
-
