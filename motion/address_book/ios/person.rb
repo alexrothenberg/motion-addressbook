@@ -191,11 +191,11 @@ module AddressBook
     end
 
     def photo_image
-      UIImage.alloc.initWithData(photo)
+      ABPersonHasImageData(ab_person) ? UIImage.alloc.initWithData(photo) : nil
     end
 
     def photo
-      ABPersonCopyImageData(ab_person)
+      ABPersonHasImageData(ab_person) ? ABPersonCopyImageData(ab_person) : nil
     end
 
     def photo=(photo_data)
