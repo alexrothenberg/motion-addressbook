@@ -1,4 +1,5 @@
 require "motion-addressbook/version"
+require "bubble-wrap/core"
 
 # RubyMotion bug RM-81 was fixed for 2.8; motion-addressbook
 if Gem::Version.new(Motion::Version) < Gem::Version.new("2.8")
