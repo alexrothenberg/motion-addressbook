@@ -89,7 +89,8 @@ simulator does.
 ### Showing the ABPeoplePickerNavigationController
 
 ```ruby
-AddressBook.pick do |person|
+address_book = AddressBook::AddrBook.new
+address_book.picker do |person|
   if person
     # person is an AddressBook::Person object
   else
