@@ -2,10 +2,10 @@ module AddressBook
   module_function
 
   def address_book
-    if App.osx?
+    if Kernel.const_defined?(:NSApplication)
       ABAddressBook.addressBook
     else # iOS
-      if Device.ios_version =~ /5/
+      if UIDevice.currentDevice.systemVersion =~ /5/
         ios5_create
       else
         ios6_create
@@ -18,7 +18,7 @@ module AddressBook
   end
 
   def count
-    if App.ios?
+    if Kernel.const_defined?(:UIApplication)
       # ABAddressBookGetPersonCount(address_book)
       instance.count
     else
