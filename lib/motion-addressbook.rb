@@ -19,12 +19,12 @@ Motion::Project::App.setup do |app|
   app.frameworks += ['AddressBook']
   app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book.rb")))
 
-  if !Motion::Project::App.osx?
+  if app.respond_to?(:template) && app.template == :osx
+    # We have an OS X project
+    app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book/osx/**.rb")))
+  else
     # We have an iOS project
     app.frameworks += ['AddressBookUI']
     app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book/ios/**.rb")))
-  else
-    # We have an OS X project
-    app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book/osx/**.rb")))
   end
 end

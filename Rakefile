@@ -10,20 +10,15 @@ end
 Bundler.setup
 Bundler.require
 
-require 'bubble-wrap/reactor'
-
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = 'AddressBook'
 
-  if Motion::Project::App.osx?
+  if ENV['osx']
     app.specs_dir = "./spec/osx"
+    app.info_plist['LSUIElement'] = true
   else
     app.specs_dir = "./spec/ios"
-  end
-
-  if ENV['osx']
-    app.info_plist['LSUIElement'] = true
   end
 end
 
