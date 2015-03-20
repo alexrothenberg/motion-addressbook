@@ -6,9 +6,10 @@ module Bacon
     def ab_connect
       AddressBook::AddrBook.new do |ab|
         if ab
-          EM.schedule_on_main do
+          cb = proc do
             Bacon.run
           end
+          Dispatch::Queue.main.async &cb
         else
           warn "ACCESS DENIED - ABORTING"
           exit
