@@ -12,6 +12,7 @@ describe AddressBook::Picker do
 
     after do
       @colin.delete!
+      @picker.hide(animated: false)
     end
 
     it 'should yield the selected person' do

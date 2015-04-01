@@ -40,16 +40,19 @@ module AddressBook
     end
 
     def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person)
+      puts "peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person)" 
       hide(ab_person)
       false
     end
 
     def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person, property:property, identifier:id)
+      puts "peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person, property:property, identifier:id)"
       hide(ab_person)
       false
     end
 
     def peoplePickerNavigationControllerDidCancel(people_picker)
+      puts "peoplePickerNavigationControllerDidCancel(people_picker)"
       hide
     end
 

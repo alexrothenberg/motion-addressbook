@@ -162,7 +162,7 @@ describe AddressBook::Person do
           {:label => 'home', :city => 'Dogpatch', :state => 'KY'}
         ],
         :urls => [
-          { :label => 'home page', :value => "http://www.mysite.com/" },
+          { :label => 'home-page', :value => "http://www.mysite.com/" },
           { :label => 'work', :value => 'http://dept.bigco.com/' },
           { :label => 'school', :value => 'http://state.edu/college' }
         ],

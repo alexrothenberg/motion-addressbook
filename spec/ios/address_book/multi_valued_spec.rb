@@ -17,7 +17,7 @@ describe AddressBook::MultiValued do
     before do
       @attributes = [
         {
-          :label => 'home page',
+          :label => 'home-page',
           :value => "http://www.mysite.com/"
         }, {
           :label => 'work',
