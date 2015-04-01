@@ -7,6 +7,7 @@ describe AddressBook::Picker do
       @selected_person = nil
       @picker = @ab.picker(animated: false) do |person|
         @selected_person = person
+        resume
       end
     end
 
@@ -16,22 +17,30 @@ describe AddressBook::Picker do
     end
 
     it 'should yield the selected person' do
-      @picker.peoplePickerNavigationController(@picker_nav_controller, shouldContinueAfterSelectingPerson: @ab_person)
-      @selected_person.should.not == nil
-      @selected_person.first_name.should == 'Colin'
+      @picker.peoplePickerNavigationController(@picker_nav_controller, shouldContinueAfterSelectingPerson: @ab_person) if UIDevice.currentDevice.systemVersion < "8.0"
+      @picker.peoplePickerNavigationController(@picker_nav_controller, didSelectPerson: @ab_person) if UIDevice.currentDevice.systemVersion >= "8.0"
+      wait 5 {
+        @selected_person.should.not == nil
+        @selected_person.first_name.should == 'Colin'
+      }
     end
 
     it 'should yield the selected person' do
       property = :some_property
       id = :some_id
-      @picker.peoplePickerNavigationController(@picker_nav_controller, shouldContinueAfterSelectingPerson: @ab_person, property:property, identifier:id)
-      @selected_person.should.not == nil
-      @selected_person.first_name.should == 'Colin'
+      @picker.peoplePickerNavigationController(@picker_nav_controller, shouldContinueAfterSelectingPerson: @ab_person, property:property, identifier:id) if UIDevice.currentDevice.systemVersion < "8.0"
+      @picker.peoplePickerNavigationController(@picker_nav_controller, didSelectPerson: @ab_person, property:property, identifier:id) if UIDevice.currentDevice.systemVersion >= "8.0"
+      wait 5 {
+        @selected_person.should.not == nil
+        @selected_person.first_name.should == 'Colin'
+      }
     end
 
     it 'should yield nil when cancelled' do
       @picker.peoplePickerNavigationControllerDidCancel(@picker_nav_controller)
-      @selected_person.should == nil
+      wait 5 {
+        @selected_person.should == nil
+      }
     end
   end
 end

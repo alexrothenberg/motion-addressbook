@@ -39,20 +39,28 @@ module AddressBook
         end)
     end
 
+    # iOS 8+
+    def peoplePickerNavigationController(people_picker, didSelectPerson: ab_person)
+      hide(ab_person)
+    end
+
+    def peoplePickerNavigationController(people_picker, didSelectPerson: ab_person, property:_, identifier:_)
+      hide(ab_person)
+    end
+
+    # iOS 7 and below - deprecated in iOS 8+
     def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person)
-      puts "peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person)" 
       hide(ab_person)
       false
     end
 
-    def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person, property:property, identifier:id)
-      puts "peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person, property:property, identifier:id)"
+    def peoplePickerNavigationController(people_picker, shouldContinueAfterSelectingPerson:ab_person, property:_, identifier:_)
       hide(ab_person)
       false
     end
 
+    # iOS 2+
     def peoplePickerNavigationControllerDidCancel(people_picker)
-      puts "peoplePickerNavigationControllerDidCancel(people_picker)"
       hide
     end
 
