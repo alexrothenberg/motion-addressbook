@@ -15,22 +15,30 @@ or for [OSX](https://developer.apple.com/library/mac/#documentation/userexperien
 
 Add these lines to your application's `Rakefile`:
 
-    require 'bundler'
-    Bundler.require
+```ruby
+require 'bundler'
+Bundler.require
+```
 
 Add this line to your application's `Gemfile`:
 
-    gem 'motion-addressbook'
+```ruby
+gem 'motion-addressbook'
+```
 
 And then execute:
 
-    $ bundle
+```bash
+$ bundle
+```
 
 ### Manually without bundler
 
 Or install it yourself as:
 
-    $ gem install motion-addressbook
+```bash
+$ gem install motion-addressbook
+```
 
 ## Usage
 
