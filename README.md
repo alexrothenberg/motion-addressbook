@@ -28,9 +28,8 @@ And then execute:
 
 ### Manually without bundler
 
-Or install it yourself (remember to add the bubble-wrap dependency) as:
+Or install it yourself as:
 
-    $ gem install bubble-wrap
     $ gem install motion-addressbook
 
 ## Usage
@@ -221,7 +220,7 @@ ab.observe!
 proc = Proc.new {|notification| NSLog "Address Book was changed!" }
 NSNotificationCenter.defaultCenter.addObserverForName(:addressbook_updated, object:nil, queue:NSOperationQueue.mainQueue, usingBlock:proc)
 
-# Or using BubbleWrap:
+# Or if you're using BubbleWrap:
 App.notification_center.observe :addressbook_updated do |notification|
   NSLog "Address Book was changed!"
 end
