@@ -15,9 +15,11 @@ class AppDelegate
       AddressBook::AddrBook.new do |ab|
         case command
         when 'people'
-          puts BW::JSON.generate(ab.people.map(&:attributes))
+          people = ab.people.map(&:attributes)
+          puts NSJSONSerialization.dataWithJSONObject(people, options:0, error:nil).to_str
         when 'groups'
-          puts BW::JSON.generate(ab.groups.map { |g| {name: g.name, members: g.members.map(&:uid) }})
+          groups = ab.groups.map { |g| {name: g.name, members: g.members.map(&:uid) }}
+          puts NSJSONSerialization.dataWithJSONObject(groups, options:0, error:nil).to_str
         end
       end
     end

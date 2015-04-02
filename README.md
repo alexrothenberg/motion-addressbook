@@ -218,6 +218,10 @@ notification.
 ```ruby
 ab.observe!
 
+proc = Proc.new {|notification| NSLog "Address Book was changed!" }
+NSNotificationCenter.defaultCenter.addObserverForName(:addressbook_updated, object:nil, queue:NSOperationQueue.mainQueue, usingBlock:proc)
+
+# Or using BubbleWrap:
 App.notification_center.observe :addressbook_updated do |notification|
   NSLog "Address Book was changed!"
 end

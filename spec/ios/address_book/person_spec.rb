@@ -162,7 +162,7 @@ describe AddressBook::Person do
           {:label => 'home', :city => 'Dogpatch', :state => 'KY'}
         ],
         :urls => [
-          { :label => 'home page', :value => "http://www.mysite.com/" },
+          { :label => 'home-page', :value => "http://www.mysite.com/" },
           { :label => 'work', :value => 'http://dept.bigco.com/' },
           { :label => 'school', :value => 'http://state.edu/college' }
         ],
@@ -530,9 +530,9 @@ describe AddressBook::Person do
       @ab1.observe!
       @ab2.observe!
       @notifications = 0
-      App.notification_center.observe :addressbook_updated do |notification|
-        @notifications += 1
-      end
+
+      proc = Proc.new{|notification| @notifications += 1 }
+      NSNotificationCenter.defaultCenter.addObserverForName(:addressbook_updated, object:nil, queue:NSOperationQueue.mainQueue, usingBlock:proc)
     end
 
     # should see a single notification for each change to the AB database:

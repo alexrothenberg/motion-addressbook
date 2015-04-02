@@ -1,5 +1,4 @@
 require "motion-addressbook/version"
-require "bubble-wrap/core"
 
 # RubyMotion bug RM-81 was fixed for 2.8; motion-addressbook
 if Gem::Version.new(Motion::Version) < Gem::Version.new("2.8")
@@ -14,30 +13,18 @@ gem 'motion-addressbook', '<= 1.5.0'
 EOT
 end
 
-BubbleWrap.require 'motion/address_book.rb' do
-  file('motion/address_book.rb').uses_framework('AddressBook')
-end
+lib_dir_path = File.dirname(File.expand_path(__FILE__))
+Motion::Project::App.setup do |app|
 
-BubbleWrap.require_ios do
-  # BW.require 'motion/address_book/multi_value.rb'
-  BW.require 'motion/address_book/ios/addr_book.rb'
-  BW.require 'motion/address_book/ios/person.rb'
-  BW.require 'motion/address_book/ios/group.rb'
-  BW.require 'motion/address_book/ios/multi_valued.rb'
-  BW.require 'motion/address_book/ios/source.rb'
+  app.frameworks += ['AddressBook']
+  app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book.rb")))
 
-  BW.require 'motion/address_book/ios/picker.rb' do
-    file('motion/address_book/ios/picker.rb').uses_framework('AddressBookUI')
+  if app.respond_to?(:template) && app.template == :osx
+    # We have an OS X project
+    app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book/osx/**.rb")))
+  else
+    # We have an iOS project
+    app.frameworks += ['AddressBookUI']
+    app.files.unshift(Dir.glob(File.join(lib_dir_path, "../motion/address_book/ios/**.rb")))
   end
-  BW.require 'motion/address_book/ios/creator.rb' do
-    file('motion/address_book/ios/creator.rb').uses_framework('AddressBookUI')
-  end
-end
-
-BubbleWrap.require_osx do
-  BW.require 'motion/address_book/osx/addr_book.rb'
-  BW.require 'motion/address_book/osx/person.rb'
-  BW.require 'motion/address_book/osx/group.rb'
-  BW.require 'motion/address_book/osx/multi_valued.rb'
-  BW.require 'motion/address_book/osx/source.rb'
 end

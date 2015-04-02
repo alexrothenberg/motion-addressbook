@@ -60,9 +60,10 @@ module AddressBook
     end
 
     def observe!
-      App.notification_center.observe KABDatabaseChangedExternallyNotification do |notification|
-        App.notification_center.post :addressbook_updated, self
+      proc = Proc.new do |notification|
+        NSNotificationCenter.defaultCenter.postNotificationName(:addressbook_updated, object: self, userInfo: nil)
       end
+      NSNotificationCenter.defaultCenter.addObserverForName(KABDatabaseChangedExternallyNotification, object:nil, queue:NSOperationQueue.mainQueue, usingBlock:proc)
     end
 
     def inspect

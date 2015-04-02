@@ -37,7 +37,7 @@ module AddressBook
 
     def observe!
       @notifier = Proc.new do |ab_instance, always_nil, context|
-        App.notification_center.post :addressbook_updated, self
+        NSNotificationCenter.defaultCenter.postNotificationName(:addressbook_updated, object: self, userInfo: nil)
       end
       ab.register_callback(@notifier)
     end
