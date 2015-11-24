@@ -82,7 +82,10 @@ end
 AddressBook.request_authorization do |granted|
   # this block is invoked sometime later
   if granted
-    # do something now that the user has said "yes"
+    Dispatch::Queue.main.sync do
+      # do something now that the user has said "yes"
+      # This has to be done on the main thread.
+    end
   else
     # do something now that the user has said "no"
   end
