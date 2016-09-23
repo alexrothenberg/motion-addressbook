@@ -8,6 +8,7 @@ Gemfile.lock
 vendor/Pods/Pods.xcodeproj/project.pbxproj
 vendor/Pods/build*
 
+motion-addressbook-*.gem
 .dat*.00*
 pkg
 .projectile
