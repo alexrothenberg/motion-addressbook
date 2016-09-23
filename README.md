@@ -75,6 +75,14 @@ else
 end
 ```
 
+** NOTE **
+
+The API which is used in `AddressBook.request_authorization` is deprecated at iOS 10 and causes a crash.
+Please insert `app.info_plist['NSContactsUsageDescription']` in your Rakefile for authorization instead of using `AddressBook.request_authorization`.
+```
+app.info_plist['NSContactsUsageDescription'] = 'Specifies the reason for your app to access the user’s contacts.'
+```
+
 3 - Manually ask the user but do it asynchronously (this is how Apple's API works)
 
 ```ruby
