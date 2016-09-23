@@ -5,7 +5,8 @@ module AddressBook
     if Kernel.const_defined?(:NSApplication)
       ABAddressBook.addressBook
     else # iOS
-      if UIDevice.currentDevice.systemVersion =~ /5/
+      version = UIDevice.currentDevice.systemVersion.to_f
+      if version < 6.0
         ios5_create
       else
         ios6_create
@@ -65,7 +66,8 @@ module AddressBook
   end
 
   def authorization_status
-    return :authorized unless UIDevice.currentDevice.systemVersion >= '6'
+    version = UIDevice.currentDevice.systemVersion.to_f
+    return :authorized unless version >= 6.0
 
     status_map = { KABAuthorizationStatusNotDetermined => :not_determined,
                    KABAuthorizationStatusRestricted    => :restricted,

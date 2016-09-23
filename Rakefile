@@ -13,6 +13,7 @@ Bundler.require
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = 'AddressBook'
+  app.info_plist['NSContactsUsageDescription'] = 'AddressBook will be used for test'
 
   if ENV['osx']
     app.specs_dir = "./spec/osx"
