@@ -12,7 +12,7 @@ if defined?(UIATarget)
       is_system_alert = app._isSystemApplication
 
       if is_system_alert
-        button = alert.defaultButton
+        button = alert.buttons.last
         if button
           button.tap
           return true
